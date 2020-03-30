@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import torch
-from data_module.CustomDataset import CustomDataset
+from data.CustomDataset import CustomDataset
 from random import shuffle
 
 class Dataloader:
@@ -14,6 +14,7 @@ class Dataloader:
     
     def get_data_loader(self):
         dataset = CustomDataset(self.path, self.image_size, self.image_format)
+        print(dataset)
         size = len(dataset)
         
         train_index = list(range(size))
