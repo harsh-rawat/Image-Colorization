@@ -8,10 +8,10 @@ import torch
 import gc
 import configparser
 
-from src.average_loss.AverageLoss import AverageLoss
-from src.data.Dataloader import Dataloader
-from src.models.Model import Model
-from src.utils.general_utils import *
+from average_loss.AverageLoss import AverageLoss
+from data.Dataloader import Dataloader
+from models.Model import Model
+from utils.general_utils import *
 
 
 def get_dataloader(dataset_path, image_format, image_size, batch_size, validation, config=None):
@@ -93,7 +93,7 @@ def train_model(model, train_loader, valid_loader, average_loss):
     if save_model:
         save_after_epoch = config.get('ModelTrainingSection', 'save_after_epochs')
         save_epochs = 0
-        if save_after_epoch is 'batch':
+        if save_after_epoch == 'batch':
             save_epochs = batches
         else:
             save_epochs = int(save_after_epoch)
@@ -114,7 +114,7 @@ def train_model(model, train_loader, valid_loader, average_loss):
     if display_test_img_flag and valid_loader is not None:
         display_epochs = config.get('ModelTrainingSection', 'display_test_image_epochs')
         display_img_epochs = 0
-        if display_epochs is 'batch':
+        if display_epochs == 'batch':
             display_img_epochs = batches
         else:
             display_img_epochs = int(display_epochs)

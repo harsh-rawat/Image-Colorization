@@ -1,4 +1,4 @@
-from src.average_loss.Loss import *
+from average_loss.Loss import *
 import pickle
 import matplotlib.pyplot as plt
 

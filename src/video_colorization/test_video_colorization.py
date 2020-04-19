@@ -1,7 +1,5 @@
-from src.average_loss.AverageLoss import AverageLoss
-from src.data.Dataloader import Dataloader
-from src.models.Model import Model
-from src.video_colorization.video_utils import *
+from data.Dataloader import Dataloader
+from video_colorization.video_utils import *
 import torch
 import gc
 

@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision.utils import save_image
 
-from src.models.Discriminator import Discriminator
-from src.models.Generator_RESNET import Generator_RESNET
-from src.models.Generator_Unet import Generator_Unet
+from models.Discriminator import Discriminator
+from models.Generator_RESNET import Generator_RESNET
+from models.Generator_Unet import Generator_Unet
 
 
 class Model:

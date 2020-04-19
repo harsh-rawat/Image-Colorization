@@ -1,5 +1,5 @@
-from src.data.Dataloader import *
-from src.utils.general_utils import *
+from data.Dataloader import *
+from utils.general_utils import *
 
 data_path = 'C:/Users/harsh/Downloads/Assignments/Spring 2020/CS 766 Computer Vision/Project/Data/17flowers'
 image_size = 256

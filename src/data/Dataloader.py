@@ -1,5 +1,5 @@
 import torch
-from src.data.CustomDataset import CustomDataset
+from data.CustomDataset import CustomDataset
 from random import shuffle
 import pickle
 import pathlib
