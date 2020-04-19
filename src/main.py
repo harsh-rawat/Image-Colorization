@@ -182,4 +182,4 @@ if __name__ == '__main__':
 
     evaluate_model_performance = bool(config.get('ModelEvaluationSection', 'evaluate_model'))
     if evaluate_model_performance:
-        evaluate_model(model, train_loader, valid_loader)
+        evaluate_model(model, train_loader, valid_loader, config)
