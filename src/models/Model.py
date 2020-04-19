@@ -30,6 +30,7 @@ class Model:
         self.gen_optim = None
         self.dis_optim = None
         self.model_type = None
+        self.residual_blocks = 9
 
         self.device = self.get_device()
         self.create_folder_structure()
@@ -82,6 +83,7 @@ class Model:
         self.dis_optim = optim.Adam(self.dis.parameters(), lr=self.lr, betas=self.betas)
 
         self.model_type = model_type
+        self.residual_blocks = residual_blocks
         print('Model Initialized !\nGenerator Model Type : {}'.format(model_type))
         print('Model Parameters are:\nEpochs : {}\nLearning rate : {}\nLeaky Relu Threshold : {}\nLamda : {}\nBeta : {}'
               .format(self.epochs, self.lr, self.leaky_relu_threshold, self.lamda, self.betas))
@@ -281,7 +283,8 @@ class Model:
                      'lr': self.lr,
                      'epochs': self.epochs, 'betas': self.betas, 'image_size': self.image_size,
                      'leaky_relu_thresh': self.leaky_relu_threshold, 'lamda': self.lamda, 'base_path': self.base_path,
-                     'count': self.count, 'image_format': self.image_format, 'device': self.device}
+                     'count': self.count, 'image_format': self.image_format, 'device': self.device,
+                     'residual_blocks': self.residual_blocks}
 
         torch.save(save_dict, filename)
 
@@ -307,6 +310,8 @@ class Model:
         self.count = save_dict['count']
         self.image_format = save_dict['image_format']
         self.device = save_dict['device']
+        self.residual_blocks = save_dict['residual_blocks']
+
         device = self.get_device()
         if device is not self.device:
             error_msg = ''
@@ -316,7 +321,7 @@ class Model:
                 error_msg = 'The model was trained on GPU and cannot be loaded on a CPU machine!'
                 raise Exception(error_msg)
 
-        self.initialize_model(model_type=save_dict['model_type'])
+        self.initialize_model(model_type=save_dict['model_type'], residual_blocks= self.residual_blocks)
 
         self.gen.load_state_dict(save_dict['gen_dict'])
         self.dis.load_state_dict(save_dict['dis_dict'])
