@@ -47,7 +47,7 @@ class Generator_RESNET(nn.Module):
 
         # 3 fractionally strided convolution layers which will give us the output 3 x 256 x 256 image
         # Input is 256 X 32 X 32
-        self.decode_1 = nn.ConvTranspose2d(1256, 128, 4, stride=2, padding=1)  # Out is 128 X 64 X 64
+        self.decode_1 = nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1)  # Out is 128 X 64 X 64
         self.decode_norm_1 = nn.BatchNorm2d(128)
         self.decode_2 = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1)  # Out is 64 X 128 X 128
         self.decode_norm_2 = nn.BatchNorm2d(64)
