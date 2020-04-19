@@ -122,7 +122,7 @@ def train_model(model, train_loader, valid_loader, average_loss):
             raise Exception('Incorrect value of Display Image epochs!')
         display_test_img = (True, valid_loader, display_img_epochs)
 
-    model.train_model(train_loader, average_loss, eval=eval, change_lr=change_lr, display_test_image=display_test_img,
+    model.train_model(train_loader, average_loss, eval=eval, change_lr=lr_mod, display_test_image=display_test_img,
                       save_model=save_model)
     average_loss.plot()
 
