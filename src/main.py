@@ -123,7 +123,7 @@ def train_model(model, train_loader, valid_loader, average_loss):
         display_test_img = (True, valid_loader, display_img_epochs)
 
     model.train_model(train_loader, average_loss, eval=eval, change_lr=lr_mod, display_test_image=display_test_img,
-                      save_model=save_model)
+                      save_model=save)
     average_loss.plot()
 
 
