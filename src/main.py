@@ -170,7 +170,7 @@ if __name__ == '__main__':
     for paths in args.folder:
         base_path = os.path.join(base_path, paths)
 
-    model, average_loss = initialize_model(args.bpath, args.size, args.format, config)
+    model, average_loss = initialize_model(base_path, args.size, args.format, config)
     if args.load_model is None:
         model.initialize_model(model_type=args.mtype)
     else:
