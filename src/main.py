@@ -26,9 +26,9 @@ def get_dataloader(dataset_path, image_format, image_size, batch_size, validatio
         valid_req = (True, percent, name)
         loader = Dataloader(dataset_path, image_size, batch_size=batch_size, image_format=image_format,
                             validation_required=valid_req)
-        save_index = bool(config.get('DataloaderSection', 'save_index'))
+        save_index = config.get('DataloaderSection', 'save_index') == 'True'
 
-        load_index = bool(config.get('DataloaderSection', 'load_index'))
+        load_index = config.get('DataloaderSection', 'load_index') == 'True'
 
         train_loader, valid_loader = loader.get_data_loader(load_indexes=load_index, save_indexes=save_index)
     else:
@@ -67,7 +67,7 @@ def initialize_model(global_path, image_size, image_format, config):
 
     model = Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
                   learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
-    average_loss = AverageLoss(global_path)
+    average_loss = AverageLoss(os.path.join(global_path, 'Loss_Checkpoints'))
 
     return model, average_loss
 
@@ -81,7 +81,7 @@ def load_model(load_model_params):
 
 def train_model(model, train_loader, valid_loader, average_loss):
     batches = len(train_loader)
-    evaluate = bool(config.get('ModelTrainingSection', 'evaluate'))
+    evaluate = config.get('ModelTrainingSection', 'evaluate') == 'True'
     eval = (False, None, None)
     if evaluate and valid_loader is not None:
         eval_epochs = int(config.get('ModelTrainingSection', 'evaluate_after_epochs'))
@@ -89,7 +89,7 @@ def train_model(model, train_loader, valid_loader, average_loss):
             raise Exception('Incorrect value of evaluation epochs!')
         eval = (True, valid_loader, eval_epochs)
 
-    save_model = bool(config.get('ModelTrainingSection', 'save_model'))
+    save_model = config.get('ModelTrainingSection', 'save_model') == 'True'
     save = (False, 1)
     if save_model:
         save_after_epoch = config.get('ModelTrainingSection', 'save_after_epochs')
@@ -102,7 +102,7 @@ def train_model(model, train_loader, valid_loader, average_loss):
             raise Exception('Incorrect value of Save epochs!')
         save = (True, save_epochs)
 
-    change_lr = bool(config.get('ModelTrainingSection', 'change_lr'))
+    change_lr = config.get('ModelTrainingSection', 'change_lr') == 'True'
     lr_mod = (False, 1)
     if change_lr:
         lr_change_epochs = int(config.get('ModelTrainingSection', 'change_lr_epochs'))
@@ -111,7 +111,7 @@ def train_model(model, train_loader, valid_loader, average_loss):
         lr_mod = (True, lr_change_epochs)
 
     display_test_img = (False, None, 25)
-    display_test_img_flag = bool(config.get('ModelTrainingSection', 'display_test_image'))
+    display_test_img_flag = config.get('ModelTrainingSection', 'display_test_image') == 'True'
     if display_test_img_flag and valid_loader is not None:
         display_epochs = config.get('ModelTrainingSection', 'display_test_image_epochs')
         display_img_epochs = 0
@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
     model, average_loss = initialize_model(base_path, args.size, args.format, config)
     if args.load_model is None:
-        residual_blocks = int(config.get('ModelSection','resnet.residual_blocks'))
+        residual_blocks = int(config.get('ModelSection', 'resnet.residual_blocks'))
         model.initialize_model(model_type=args.mtype, residual_blocks=residual_blocks)
     else:
         load_model_params = args.load_model.split(',')
@@ -180,6 +180,6 @@ if __name__ == '__main__':
 
     train_model(model, train_loader, valid_loader, average_loss)
 
-    evaluate_model_performance = bool(config.get('ModelEvaluationSection', 'evaluate_model'))
+    evaluate_model_performance = config.get('ModelEvaluationSection', 'evaluate_model') == 'True'
     if evaluate_model_performance:
         evaluate_model(model, train_loader, valid_loader, config)
