@@ -9,6 +9,7 @@ from torchvision.utils import save_image
 from models.Discriminator import Discriminator
 from models.Generator_RESNET import Generator_RESNET
 from models.Generator_Unet import Generator_Unet
+from models.Generator_InceptionNet import Generator_InceptionNet
 
 
 class Model:
@@ -64,16 +65,17 @@ class Model:
 
     def initialize_model(self, model_type='unet', residual_blocks=9):
 
-        all_models = ['unet', 'resnet']
+        all_models = ['unet', 'resnet', 'inception']
         if model_type not in all_models:
             raise Exception('This model type is not available!');
 
+        self.dis = Discriminator(image_size=self.image_size, leaky_relu=self.leaky_relu_threshold)
         if model_type == 'unet':
             self.gen = Generator_Unet(image_size=self.image_size)
-            self.dis = Discriminator(image_size=self.image_size, leaky_relu=self.leaky_relu_threshold)
         elif model_type == 'resnet':
             self.gen = Generator_RESNET(residual_blocks=residual_blocks)
-            self.dis = Discriminator(image_size=self.image_size, leaky_relu=self.leaky_relu_threshold)
+        elif model_type == 'inception':
+            self.gen = Generator_InceptionNet()
 
         if self.device is not None:
             self.gen.cuda()
