@@ -83,6 +83,8 @@ class Model:
 
         self.model_type = model_type
         print('Model Initialized !\nGenerator Model Type : {}'.format(model_type))
+        print('Model Parameters are:\nEpochs : {}\nLearning rate : {}\nLeaky Relu Threshold : {}\nLamda : {}\nBeta : {}'
+              .format(self.epochs, self.lr, self.leaky_relu_threshold, self.lamda, self.betas))
 
     def train_model(self, trainloader, average_loss, eval=(False, None, None), save_model=(False, 25),
                     display_test_image=(False, None, 25), change_lr=(False, 30)):
