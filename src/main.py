@@ -172,7 +172,8 @@ if __name__ == '__main__':
 
     model, average_loss = initialize_model(base_path, args.size, args.format, config)
     if args.load_model is None:
-        model.initialize_model(model_type=args.mtype)
+        residual_blocks = int(config.get('ModelSection','resnet.residual_blocks'))
+        model.initialize_model(model_type=args.mtype, residual_blocks=residual_blocks)
     else:
         load_model_params = args.load_model.split(',')
         load_model(load_model_params)

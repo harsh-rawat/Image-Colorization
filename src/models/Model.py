@@ -61,7 +61,7 @@ class Model:
         else:
             return None
 
-    def initialize_model(self, model_type='unet'):
+    def initialize_model(self, model_type='unet', residual_blocks=9):
 
         all_models = ['unet', 'resnet']
         if model_type not in all_models:
@@ -71,7 +71,7 @@ class Model:
             self.gen = Generator_Unet(image_size=self.image_size)
             self.dis = Discriminator(image_size=self.image_size, leaky_relu=self.leaky_relu_threshold)
         elif model_type == 'resnet':
-            self.gen = Generator_RESNET()
+            self.gen = Generator_RESNET(residual_blocks=residual_blocks)
             self.dis = Discriminator(image_size=self.image_size, leaky_relu=self.leaky_relu_threshold)
 
         if self.device is not None:
