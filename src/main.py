@@ -6,6 +6,7 @@ Created on Mon Mar 10 15:59:47 2020
 import argparse
 import torch
 import gc
+import os
 import configparser
 
 from average_loss.AverageLoss import AverageLoss
@@ -164,6 +165,10 @@ if __name__ == '__main__':
     train_loader, valid_loader = get_dataloader(args.dpath, args.format, args.size, int(args.batch), args.validation,
                                                 config)
     generate_sample(train_loader)
+
+    base_path = args.bpath
+    for paths in args.folder:
+        base_path = os.path.join(base_path, paths)
 
     model, average_loss = initialize_model(args.bpath, args.size, args.format, config)
     if args.load_model is None:
