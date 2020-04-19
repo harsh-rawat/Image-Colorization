@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 def generate_sample(loaders):
     train_imgs = next(iter(loaders))
-    print(train_imgs[0].shape)
-    print(train_imgs[1].shape)
+    print('Shape of Grayscale Image Tensor is : {}'.format(train_imgs[0].shape))
+    print('Shape of Colored Image Tensor is : {}'.format(train_imgs[1].shape))
     train_img_to_show_bw = train_imgs[0][0][0]
     train_img_to_show_rgb = train_imgs[1][0]
     train_img_to_show_rgb = np.transpose((train_img_to_show_rgb + 1) / 2, (1, 2, 0))

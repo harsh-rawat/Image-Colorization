@@ -12,13 +12,21 @@ class video_utils:
         self.size = size
         self.image_type = image_type
 
-    def convert_to_grayscale_video(self, load_filename, save_filename):
-        self.delete_temp_files('grayscale_gray')
-        self.delete_temp_files('grayscale_color')
+    def convert_to_grayscale_video(self, foldername, load_filename, save_filename, delete_temp = False):
+        self.delete_all_temp_files(foldername)
 
-        self.extract_images('grayscale', load_filename)
-        self.combine_images('grayscale', load_filename, save_filename)
-        self.delete_temp_files('grayscale_gray')
+        self.extract_images(foldername, load_filename)
+        self.combine_images(foldername, load_filename, save_filename)
+        if delete_temp:
+            self.delete_all_temp_files(foldername)
+
+    def delete_all_temp_files(self, folder_name):
+        self.delete_temp_files(folder_name)
+        self.delete_temp_files(folder_name)
+
+    def apply_ml_model(self, dataloader, model):
+        #model.apply_model()
+        print('hello')
 
     def combine_images(self, folder_name, load_filename, save_filename):
         video_name = '{}/{}'.format(self.path, save_filename)

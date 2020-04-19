@@ -177,7 +177,7 @@ class Model:
             average_loss.add_loss(save_tuple)
 
         self.save_checkpoint('checkpoint_train_final', self.model_type)
-        average_loss.save('checkpoint_avg_loss_final')
+        average_loss.save('checkpoint_avg_loss_final', save_index=0)
 
     def evaluate_model(self, loader, save_filename, no_of_images=1):
         # Considering that we have batch size of 1 for test set
@@ -257,6 +257,18 @@ class Model:
         if lamda is not None:
             self.lamda = lamda
             print('Lamda value has been changed to {}!'.format(self.lamda))
+
+    def set_all_params(self, epochs, lr, leaky_thresh, lamda, beta):
+        self.epochs = epochs
+        self.lr = lr
+        self.leaky_relu_threshold = leaky_thresh
+        self.lamda = lamda
+        self.betas = beta
+        self.gen_optim = optim.Adam(self.gen.parameters(), lr=self.lr, betas=self.betas)
+        self.dis_optim = optim.Adam(self.dis.parameters(), lr=self.lr, betas=self.betas)
+
+        print('Model Parameters are:\nEpochs : {}\nLearning rate : {}\nLeaky Relu Threshold : {}\nLamda : {}\nBeta : {}'
+              .format(self.epochs, self.lr, self.leaky_relu_threshold, self.lamda, self.betas))
 
     def save_checkpoint(self, filename, model_type='unet'):
         if self.gen is None or self.dis is None:
