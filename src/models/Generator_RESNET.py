@@ -24,7 +24,7 @@ class Generator_RESNET(nn.Module):
 
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
-        # Input is of format batch_size X 3 X 256 X 256
+        # Input is of format batch_size X 1 X 256 X 256
         self.layer_1 = nn.Conv2d(1, 64, 4, stride=2, padding=1)  # Output would be 64 X 128 X 128
         self.layer_1_norm = nn.BatchNorm2d(64)
         self.layer_2 = nn.Conv2d(64, 128, 4, stride=2, padding=1)  # Output would be 128 X 64 X 64

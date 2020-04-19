@@ -35,12 +35,14 @@ class AverageLoss:
         plt.savefig('{}/loss_curve_{}.png'.format(self.base_path, self.index))
         plt.show()
 
-    def save(self, filename):
+    def save(self, filename, save_index=None):
+        if save_index is None:
+            save_index = self.index
         save_dict = {'index': self.index, 'base_path': self.base_path}
         for i in range(len(self.all_models)):
             save_dict[self.model_names[i]] = self.all_models[i]
         save_dict['model_names'] = self.model_names;
-        file_path = '{}/{}_{}'.format(self.base_path, filename, self.index)
+        file_path = '{}/{}_{}'.format(self.base_path, filename, save_index)
         with open(file_path, 'wb') as file:
             pickle.dump(save_dict, file)
         print('Losses have been saved!')

@@ -1,8 +1,14 @@
-import torch
-import torch.optim as optim
-import torch.nn as nn
-from torchvision.utils import save_image
 import pathlib
+import os
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision.utils import save_image
+
+from src.models.Discriminator import Discriminator
+from src.models.Generator_RESNET import Generator_RESNET
+from src.models.Generator_Unet import Generator_Unet
 
 
 class Model:
@@ -58,17 +64,17 @@ class Model:
     def initialize_model(self, model_type='unet'):
 
         all_models = ['unet', 'resnet']
-        if (model_type not in all_models):
+        if model_type not in all_models:
             raise Exception('This model type is not available!');
 
-        if (model_type == 'unet'):
+        if model_type == 'unet':
             self.gen = Generator_Unet(image_size=self.image_size)
             self.dis = Discriminator(image_size=self.image_size, leaky_relu=self.leaky_relu_threshold)
-        elif (model_type == 'resnet'):
+        elif model_type == 'resnet':
             self.gen = Generator_RESNET()
             self.dis = Discriminator(image_size=self.image_size, leaky_relu=self.leaky_relu_threshold)
 
-        if (self.device != None):
+        if self.device is not None:
             self.gen.cuda()
             self.dis.cuda()
 
@@ -76,7 +82,7 @@ class Model:
         self.dis_optim = optim.Adam(self.dis.parameters(), lr=self.lr, betas=self.betas)
 
         self.model_type = model_type
-        print('Model Initialized !')
+        print('Model Initialized !\nGenerator Model Type : {}'.format(model_type))
 
     def train_model(self, trainloader, average_loss, eval=(False, None, None), save_model=(False, 25),
                     display_test_image=(False, None, 25), change_lr=(False, 30)):
@@ -96,19 +102,19 @@ class Model:
             sample_img_test, rgb_test_images = next(iter(display_test_image[1]))
             save_image((rgb_test_images[0].detach().cpu() + 1) / 2,
                        '{}/Training Images/real_img.{}'.format(self.base_path, self.image_format))
-            if self.device != None:
+            if self.device is not None:
                 sample_img_test = sample_img_test.cuda()
 
         for i in range(self.epochs):
 
-            if (eval[0] and (i % eval[2] == 0)):
+            if eval[0] and (i % eval[2] == 0):
                 self.evaluate_L1_loss_dataset(eval[1], train=False)
                 self.gen.train()
 
             running_gen_loss = 0
             running_dis_loss = 0
 
-            if (change_lr[0] and (i + 2) % change_lr[1] == 0):
+            if change_lr[0] and (i + 2) % change_lr[1] == 0:
                 self.change_params(learning_rate=self.lr * 0.8)
 
             for gray_img, real_img in trainloader:
@@ -117,7 +123,7 @@ class Model:
                 zero_label = torch.zeros(batch_size)
                 one_label = torch.ones(batch_size)
 
-                if self.device != None:
+                if self.device is not None:
                     gray_img = gray_img.cuda()
                     real_img = real_img.cuda()
                     zero_label = zero_label.cuda()
@@ -148,7 +154,7 @@ class Model:
                 running_dis_loss += total_dis_loss.item()
                 running_gen_loss += total_gen_loss.item()
 
-                if (display_test_image[0] and iterations % display_test_image[2] == 0):
+                if display_test_image[0] and iterations % display_test_image[2] == 0:
                     self.gen.eval()
                     out_result = self.gen(sample_img_test)
                     out_result = out_result.detach().cpu()
@@ -157,9 +163,9 @@ class Model:
                                                                                        self.image_format))
                     self.gen.train()
 
-                if (save_model[0] and iterations % save_model[1] == 0):
+                if save_model[0] and iterations % save_model[1] == 0:
                     self.save_checkpoint('checkpoint_iter_{}'.format(iterations), self.model_type)
-                    average_loss.save('checkpoint_avg_loss')
+                    average_loss.save('checkpoint_avg_loss', save_index=0)
 
                 iterations += 1
 
@@ -175,14 +181,14 @@ class Model:
 
     def evaluate_model(self, loader, save_filename, no_of_images=1):
         # Considering that we have batch size of 1 for test set
-        if self.gen == None or self.dis == None:
+        if self.gen is None or self.dis is None:
             raise Exception('Model has not been initialized and hence cannot be saved!');
 
         counter_images_generated = 0
-        while (counter_images_generated < no_of_images):
+        while counter_images_generated < no_of_images:
             gray, rgb = next(iter(loader))
 
-            if (self.device != None):
+            if self.device is not None:
                 gray = gray.cuda()
 
             filename = '{}/Test Images/{}_{}.{}'.format(self.base_path, save_filename, self.count, self.image_format)
@@ -208,7 +214,7 @@ class Model:
 
     def evaluate_L1_loss_dataset(self, loader, train=False):
 
-        if (self.gen == None or self.dis == None):
+        if self.gen is None or self.dis is None:
             raise Exception('Model has not been initialized and hence cannot be evaluated!')
 
         loss_function = nn.L1Loss()
@@ -217,7 +223,7 @@ class Model:
         iterations = 0;
         for gray, real in loader:
             iterations += 1
-            if (self.device != None):
+            if self.device is not None:
                 gray = gray.cuda()
                 real = real.cuda()
 
@@ -232,28 +238,28 @@ class Model:
         return total_loss;
 
     def change_params(self, epochs=None, learning_rate=None, leaky_relu=None, betas=None, lamda=None):
-        if (epochs != None):
+        if epochs is not None:
             self.epochs = epochs
             print('Changed the number of epochs to {}!'.format(self.epochs))
-        if (learning_rate != None):
+        if learning_rate is not None:
             self.lr = learning_rate
             print('Changed the learning rate to {}!'.format(self.lr))
-        if (leaky_relu != None):
+        if leaky_relu is not None:
             self.leaky_relu_threshold = leaky_relu
             print('Changed the threshold for leaky relu to {}!'.format(self.leaky_relu_threshold))
-        if (betas != None):
+        if betas is not None:
             self.betas = betas
             print('Changed the betas for Adams Optimizer!')
-        if (betas != None or learning_rate != None):
+        if betas is not None or learning_rate is not None:
             self.gen_optim = optim.Adam(self.gen.parameters(), lr=self.lr, betas=self.betas)
             self.dis_optim = optim.Adam(self.dis.parameters(), lr=self.lr, betas=self.betas)
 
-        if (lamda != None):
+        if lamda is not None:
             self.lamda = lamda
-            print('Lamda value has been changed!')
+            print('Lamda value has been changed to {}!'.format(self.lamda))
 
     def save_checkpoint(self, filename, model_type='unet'):
-        if (self.gen == None or self.dis == None):
+        if self.gen is None or self.dis is None:
             raise Exception('The model has not been initialized and hence cannot be saved !')
 
         filename = '{}/checkpoints/{}.pth'.format(self.base_path, filename)
@@ -269,7 +275,7 @@ class Model:
 
     def load_checkpoint(self, filename):
         filename = '{}/checkpoints/{}.pth'.format(self.base_path, filename)
-        if (not pathlib.Path(filename).exists()):
+        if not pathlib.Path(filename).exists():
             raise Exception('This checkpoint does not exist!')
 
         self.gen = None
@@ -287,6 +293,14 @@ class Model:
         self.count = save_dict['count']
         self.image_format = save_dict['image_format']
         self.device = save_dict['device']
+        device = self.get_device()
+        if device is not self.device:
+            error_msg = ''
+            if self.device is None:
+                error_msg = 'The model was trained on CPU and will therefore be continued on CPU only!'
+            else:
+                error_msg = 'The model was trained on GPU and cannot be loaded on a CPU machine!'
+                raise Exception(error_msg)
 
         self.initialize_model(model_type=save_dict['model_type'])
 
