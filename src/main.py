@@ -79,7 +79,7 @@ def load_model(load_model_params):
     model.set_all_params(epochs, lr, leaky_thresh, lamda, (beta1, beta2))
 
 
-def train_model(model, train_loader, valid_loader, average_loss):
+def train_model(model, train_loader, valid_loader, average_loss, epochs):
     batches = len(train_loader)
     evaluate = config.get('ModelTrainingSection', 'evaluate') == 'True'
     eval = (False, None, None)
@@ -123,6 +123,10 @@ def train_model(model, train_loader, valid_loader, average_loss):
             raise Exception('Incorrect value of Display Image epochs!')
         display_test_img = (True, valid_loader, display_img_epochs)
 
+    if epochs is not None:
+        epochs = int(epochs)
+        model.change_params(epochs=epochs)
+
     model.train_model(train_loader, average_loss, eval=eval, change_lr=lr_mod, display_test_image=display_test_img,
                       save_model=save)
     average_loss.plot()
@@ -151,6 +155,9 @@ if __name__ == '__main__':
     parser.add_argument('-size', metavar='Image Size', action='store', default=256, help='Image size to be considered')
     parser.add_argument('-batch', metavar='Batch Size', action='store', required=True,
                         help='Batch size to be used in training set')
+    parser.add_argument('-epochs', metavar='Epochs', action='store', default=None, help='No of Epochs for training. '
+                                                                                        'Overrides the parameter '
+                                                                                        'present in properties file')
     parser.add_argument('-validation', action='store_true', default=False, help='Specify if validation is required')
     parser.add_argument('-load_model', action='store', default=None, help='Use this option to load a model. Provide a '
                                                                           'list as : -load_model training model checkpoint name,'
@@ -178,7 +185,7 @@ if __name__ == '__main__':
         load_model_params = args.load_model.split(',')
         load_model(load_model_params)
 
-    train_model(model, train_loader, valid_loader, average_loss)
+    train_model(model, train_loader, valid_loader, average_loss, args.epochs)
 
     evaluate_model_performance = config.get('ModelEvaluationSection', 'evaluate_model') == 'True'
     if evaluate_model_performance:
