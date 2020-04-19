@@ -29,8 +29,12 @@ class Generator_RESNET(nn.Module):
         self.layer_1_norm = nn.BatchNorm2d(64)
         self.layer_2 = nn.Conv2d(64, 128, 4, stride=2, padding=1)  # Output would be 128 X 64 X 64
         self.layer_2_norm = nn.BatchNorm2d(128)
-        self.layer_3 = nn.Conv2d(128, 256, 4, stride=2, padding=1)  # Output would be 256 X 32 X 32
-        self.layer_3_norm = nn.BatchNorm2d(256)
+        self.layer_3 = nn.Conv2d(128, 128, 3, stride=1, padding=1)  # Output would be 128 X 64 X 64
+        self.layer_3_norm = nn.BatchNorm2d(128)
+        self.layer_4 = nn.Conv2d(128, 256, 4, stride=2, padding=1)  # Output would be 256 X 32 X 32
+        self.layer_4_norm = nn.BatchNorm2d(256)
+        self.layer_5 = nn.Conv2d(256, 256, 3, stride=1, padding=1)  # Output would be 256 X 32 X 32
+        self.layer_5_norm = nn.BatchNorm2d(256)
 
         # Residual Part ###
         self.res_blocks = []
@@ -43,11 +47,15 @@ class Generator_RESNET(nn.Module):
 
         # 3 fractionally strided convolution layers which will give us the output 3 x 256 x 256 image
         # Input is 256 X 32 X 32
-        self.decode_1 = nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1)  # Out is 128 X 64 X 64
+        self.decode_1 = nn.ConvTranspose2d(1256, 128, 4, stride=2, padding=1)  # Out is 128 X 64 X 64
         self.decode_norm_1 = nn.BatchNorm2d(128)
         self.decode_2 = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1)  # Out is 64 X 128 X 128
         self.decode_norm_2 = nn.BatchNorm2d(64)
-        self.decode_3 = nn.ConvTranspose2d(64, 3, 4, stride=2, padding=1)  # Out is 3 X 256 X 256
+        self.decode_3 = nn.ConvTranspose2d(64, 64, 3, stride=1, padding=1)  # Out is 64 X 128 X 128
+        self.decode_norm_3 = nn.BatchNorm2d(64)
+        self.decode_4 = nn.ConvTranspose2d(64, 32, 3, stride=1, padding=1)  # Out is 32 X 128 X 128
+        self.decode_norm_4 = nn.BatchNorm2d(32)
+        self.decode_5 = nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1)  # Out is 3 X 256 X 256
 
         self._initialize_weights()
 
@@ -56,13 +64,17 @@ class Generator_RESNET(nn.Module):
         x = self.relu(self.layer_1_norm(self.layer_1(x)))
         x = self.relu(self.layer_2_norm(self.layer_2(x)))
         x = self.relu(self.layer_3_norm(self.layer_3(x)))
+        x = self.relu(self.layer_4_norm(self.layer_4(x)))
+        x = self.relu(self.layer_5_norm(self.layer_5(x)))
 
         for resblock in self.res_blocks:
             x = resblock(x)
 
         x = self.relu(self.decode_norm_1(self.decode_1(x)))
         x = self.relu(self.decode_norm_2(self.decode_2(x)))
-        x = self.tanh(self.decode_3(x))
+        x = self.relu(self.decode_norm_3(self.decode_3(x)))
+        x = self.relu(self.decode_norm_4(self.decode_4(x)))
+        x = self.tanh(self.decode_5(x))
 
         return x
 
