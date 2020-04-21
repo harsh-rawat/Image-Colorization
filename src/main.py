@@ -102,14 +102,6 @@ def train_model(model, train_loader, valid_loader, average_loss, epochs):
             raise Exception('Incorrect value of Save epochs!')
         save = (True, save_epochs)
 
-    change_lr = config.get('ModelTrainingSection', 'change_lr') == 'True'
-    lr_mod = (False, 1)
-    if change_lr:
-        lr_change_epochs = int(config.get('ModelTrainingSection', 'change_lr_epochs'))
-        if lr_change_epochs < 0:
-            raise Exception('Incorrect value of LR change epochs!')
-        lr_mod = (True, lr_change_epochs)
-
     display_test_img = (False, None, 25)
     display_test_img_flag = config.get('ModelTrainingSection', 'display_test_image') == 'True'
     if display_test_img_flag and valid_loader is not None:
@@ -127,7 +119,7 @@ def train_model(model, train_loader, valid_loader, average_loss, epochs):
         epochs = int(epochs)
         model.change_params(epochs=epochs)
 
-    model.train_model(train_loader, average_loss, eval=eval, change_lr=lr_mod, display_test_image=display_test_img,
+    model.train_model(train_loader, average_loss, eval=eval, display_test_image=display_test_img,
                       save_model=save)
     average_loss.plot()
 

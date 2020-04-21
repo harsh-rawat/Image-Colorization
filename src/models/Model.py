@@ -105,7 +105,7 @@ class Model:
               .format(self.epochs, self.lr, self.leaky_relu_threshold, self.lamda, self.betas))
 
     def train_model(self, trainloader, average_loss, eval=(False, None, None), save_model=(False, 25),
-                    display_test_image=(False, None, 25), change_lr=(False, 30)):
+                    display_test_image=(False, None, 25)):
 
         mean_loss = nn.BCELoss()
         l1_loss = nn.L1Loss()
@@ -133,9 +133,6 @@ class Model:
 
             running_gen_loss = 0
             running_dis_loss = 0
-
-            if change_lr[0] and (i + 2) % change_lr[1] == 0:
-                self.change_params(learning_rate=self.lr * 0.8)
 
             for gray_img, real_img in trainloader:
 
