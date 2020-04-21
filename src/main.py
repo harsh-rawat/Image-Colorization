@@ -172,7 +172,7 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('./project.properties')
 
-    if args.loss_plot is not None:
+    if args.loss_plot:
         train_loss = config.get('LossSection', 'train')
         train_loss = train_loss.split(',')
         train_loss = [float(val) for val in train_loss]
