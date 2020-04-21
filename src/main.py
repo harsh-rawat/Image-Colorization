@@ -192,10 +192,11 @@ if __name__ == '__main__':
     for paths in args.folder:
         base_path = os.path.join(base_path, paths)
 
+    layer_size = int(config.get('ModelSection', 'layer_size'))
     model, average_loss = initialize_model(base_path, args.size, args.format, config)
     if args.load_model is None:
         residual_blocks = int(config.get('ModelSection', 'resnet.residual_blocks'))
-        model.initialize_model(model_type=args.mtype, residual_blocks=residual_blocks)
+        model.initialize_model(model_type=args.mtype, residual_blocks=residual_blocks, layer_size=layer_size)
     else:
         load_model_params = args.load_model.split(',')
         load_model(load_model_params)
