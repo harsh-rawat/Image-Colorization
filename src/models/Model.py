@@ -194,6 +194,8 @@ class Model:
             average_loss.add_loss(save_tuple)
             self.lr_schedule_gen.step()
             self.lr_schedule_dis.step()
+            for param_grp in self.dis_optim.param_groups:
+                print('Learning rate after {} epochs is : {}'.format(i+1, param_grp['lr']))
 
         self.save_checkpoint('checkpoint_train_final', self.model_type)
         average_loss.save('checkpoint_avg_loss_final', save_index=0)
