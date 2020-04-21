@@ -165,10 +165,25 @@ if __name__ == '__main__':
                                                                           'checkpoint index]')
     parser.add_argument('-mtype', metavar='Model Type', action='store', default='unet',
                         help='The model architecture to be initialized')
+    parser.add_argument('-loss_plot', action='store_true',
+                        help='Generate the loss bar plot based on values present in properties file.')
 
     args = parser.parse_args()
     config = configparser.ConfigParser()
     config.read('./project.properties')
+
+    if args.loss_plot is not None:
+        train_loss = config.get('LossSection', 'train')
+        train_loss = train_loss.split(',')
+        train_loss = [float(val) for val in train_loss]
+        test_loss = config.get('LossSection', 'test')
+        test_loss = test_loss.split(',')
+        test_loss = [float(val) for val in test_loss]
+        labels = config.get('LossSection', 'labels')
+        labels = labels.split(',')
+        generate_loss_chart(labels, train_loss, test_loss)
+        exit()
+
     train_loader, valid_loader = get_dataloader(args.dpath, args.format, args.size, int(args.batch), args.validation,
                                                 config)
     generate_sample(train_loader)

@@ -14,3 +14,26 @@ def generate_sample(loaders):
     axes[0].imshow(train_img_to_show_rgb)
     axes[1].imshow(train_img_to_show_bw, cmap='gray')
     plt.show()
+
+def generate_loss_chart(labels, train, test):
+    n = np.arange(len(labels))
+    width = 0.3
+
+    if len(labels) != len(train) != len(test):
+        raise Exception('Length of the arrays do not match!')
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    ax.bar(n, train, width, color='g', label='Loss over training set')
+    ax.bar(n + width, test, width, color='y', label='Loss over test set')
+
+    ax.set_ylabel('Loss')
+    ax.set_xticks(n + width / 2)
+    ax.set_xticklabels(labels)
+
+    ax.legend()
+
+    plt.savefig('compare_loss.png')
+
+    plt.show()
