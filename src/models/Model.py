@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.utils import save_image
+import torch.optim.lr_scheduler as lr_schedular
 
 from models.Discriminator import Discriminator
 from models.Generator_RESNET import Generator_RESNET
@@ -35,6 +36,9 @@ class Model:
         self.model_type = None
         self.residual_blocks = 9
         self.layer_size = 64
+        self.lr_policy = None
+        self.lr_schedule_gen = None
+        self.lr_schedule_dis = None
 
         self.device = self.get_device()
         self.create_folder_structure()
@@ -66,7 +70,7 @@ class Model:
         else:
             return None
 
-    def initialize_model(self, model_type='unet', residual_blocks=9, layer_size=64):
+    def initialize_model(self, lr_schedular_options, model_type='unet', residual_blocks=9, layer_size=64):
 
         all_models = ['unet', 'resnet', 'inception', 'cnn']
         if model_type not in all_models:
@@ -89,9 +93,13 @@ class Model:
         self.gen_optim = optim.Adam(self.gen.parameters(), lr=self.lr, betas=self.betas)
         self.dis_optim = optim.Adam(self.dis.parameters(), lr=self.lr, betas=self.betas)
 
+        self.lr_schedule_dis = self.get_learning_schedule(self.gen_optim, lr_schedular_options)
+        self.lr_schedule_gen = self.get_learning_schedule(self.dis_optim, lr_schedular_options)
+
         self.model_type = model_type
         self.layer_size = layer_size
         self.residual_blocks = residual_blocks
+        self.lr_policy = lr_schedular_options
         print('Model Initialized !\nGenerator Model Type : {} and Layer Size : {}'.format(model_type, layer_size))
         print('Model Parameters are:\nEpochs : {}\nLearning rate : {}\nLeaky Relu Threshold : {}\nLamda : {}\nBeta : {}'
               .format(self.epochs, self.lr, self.leaky_relu_threshold, self.lamda, self.betas))
@@ -187,9 +195,31 @@ class Model:
                                                                                        running_dis_loss))
             save_tuple = ([running_gen_loss], [running_dis_loss])
             average_loss.add_loss(save_tuple)
+            self.lr_schedule_gen.step()
+            self.lr_schedule_dis.step()
 
         self.save_checkpoint('checkpoint_train_final', self.model_type)
         average_loss.save('checkpoint_avg_loss_final', save_index=0)
+
+    def get_learning_schedule(self, optimizer, option):
+
+        schedular = None
+        if option['lr_policy'] == 'linear':
+            def lambda_rule(epoch):
+                lr_l = 1.0 - max(0, epoch - option['n_epochs']) / float(option['n_epoch_decay']+1)
+                return lr_l
+            schedular = lr_schedular.LambdaLR(optimizer, lr_lambda=lambda_rule)
+        elif option['lr_policy'] == 'plateau':
+            schedular = lr_schedular.ReduceLROnPlateau(optimizer, mode='min', factor = 0.2, threshold= 0.01, patience= 5)
+        elif option['lr_policy'] == 'step':
+            schedular = lr_schedular.StepLR(optimizer, step_size=option['step_size'], gamma=0.1)
+        elif option['lr_policy'] == 'cosine':
+            schedular = lr_schedular.CosineAnnealingLR(optimizer, T_max=option['n_epochs'], eta_min=0)
+        else:
+            raise Exception('LR Policy not implemented!')
+
+        return schedular
+
 
     def evaluate_model(self, loader, save_filename, no_of_images=1):
         # Considering that we have batch size of 1 for test set
@@ -292,7 +322,7 @@ class Model:
                      'epochs': self.epochs, 'betas': self.betas, 'image_size': self.image_size,
                      'leaky_relu_thresh': self.leaky_relu_threshold, 'lamda': self.lamda, 'base_path': self.base_path,
                      'count': self.count, 'image_format': self.image_format, 'device': self.device,
-                     'residual_blocks': self.residual_blocks, 'layer_size': self.layer_size}
+                     'residual_blocks': self.residual_blocks, 'layer_size': self.layer_size, 'lr_policy': self.lr_policy}
 
         torch.save(save_dict, filename)
 
@@ -320,6 +350,7 @@ class Model:
         self.device = save_dict['device']
         self.residual_blocks = save_dict['residual_blocks']
         self.layer_size = save_dict['layer_size']
+        self.lr_policy = save_dict['lr_policy']
 
         device = self.get_device()
         if device is not self.device:
@@ -331,7 +362,7 @@ class Model:
                 raise Exception(error_msg)
 
         self.initialize_model(model_type=save_dict['model_type'], residual_blocks=self.residual_blocks,
-                              layer_size=self.layer_size)
+                              layer_size=self.layer_size, lr_schedular_options=self.lr_policy)
 
         self.gen.load_state_dict(save_dict['gen_dict'])
         self.dis.load_state_dict(save_dict['dis_dict'])

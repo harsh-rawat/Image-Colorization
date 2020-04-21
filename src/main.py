@@ -193,10 +193,16 @@ if __name__ == '__main__':
         base_path = os.path.join(base_path, paths)
 
     layer_size = int(config.get('ModelSection', 'layer_size'))
+    option = {}
+    option['lr_policy'] = config.get('ModelTrainingSection', 'lr_policy')
+    option['n_epochs'] = int(config.get('ModelTrainingSection', 'n_epochs'))
+    option['n_epoch_decay'] = int(config.get('ModelTrainingSection', 'n_epoch_decay'))
+    option['step_size'] = int(config.get('ModelTrainingSection', 'step_size'))
+
     model, average_loss = initialize_model(base_path, args.size, args.format, config)
     if args.load_model is None:
         residual_blocks = int(config.get('ModelSection', 'resnet.residual_blocks'))
-        model.initialize_model(model_type=args.mtype, residual_blocks=residual_blocks, layer_size=layer_size)
+        model.initialize_model(lr_schedular_options=option, model_type=args.mtype, residual_blocks=residual_blocks, layer_size=layer_size)
     else:
         load_model_params = args.load_model.split(',')
         load_model(load_model_params)
