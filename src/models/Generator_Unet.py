@@ -12,7 +12,7 @@ class Generator_Unet(nn.Module):
         self.layer_1_bn = nn.BatchNorm2d(ngf)
 
         self.layer_2 = nn.Conv2d(ngf, ngf*2, 4, padding=1, stride=2)
-        self.layer_2_bn = nn.BatchNorm2d(128)
+        self.layer_2_bn = nn.BatchNorm2d(ngf*2)
 
         self.layer_3 = nn.Conv2d(ngf*2, ngf*4, 4, padding=1, stride=2)
         self.layer_3_bn = nn.BatchNorm2d(ngf*4)
