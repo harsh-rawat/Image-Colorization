@@ -2,51 +2,40 @@ import torch.nn as nn
 
 
 class Generator_Unet(nn.Module):
-    def __init__(self, image_size=224):
+    def __init__(self, image_size=256, ngf=64):
         super(Generator_Unet, self).__init__()
 
         self.tanh = nn.Tanh()
         self.relu = nn.ReLU()
 
-        # Input is of shape(1 X 1 X image_size X image_size)
-        self.layer_1 = nn.Conv2d(1, 64, 4, padding=1, stride=2)
-        self.layer_1_bn = nn.BatchNorm2d(64)
-        # Output is of shape (1 X 64 X 128 X 128)
+        self.layer_1 = nn.Conv2d(1, ngf, 4, padding=1, stride=2)
+        self.layer_1_bn = nn.BatchNorm2d(ngf)
 
-        self.layer_2 = nn.Conv2d(64, 128, 4, padding=1, stride=2)
+        self.layer_2 = nn.Conv2d(ngf, ngf*2, 4, padding=1, stride=2)
         self.layer_2_bn = nn.BatchNorm2d(128)
-        # Output is of shape (1 X 64 X 64 X 64)
 
-        self.layer_3 = nn.Conv2d(128, 256, 4, padding=1, stride=2)
-        self.layer_3_bn = nn.BatchNorm2d(256)
-        # Output is of shape (1 X 64 X 32 X 32)
+        self.layer_3 = nn.Conv2d(ngf*2, ngf*4, 4, padding=1, stride=2)
+        self.layer_3_bn = nn.BatchNorm2d(ngf*4)
 
-        self.layer_4 = nn.Conv2d(256, 512, 4, padding=1, stride=2)
-        self.layer_4_bn = nn.BatchNorm2d(512)
-        # Output is of shape (1 X 64 X 16 X 16)
+        self.layer_4 = nn.Conv2d(ngf*4, ngf*8, 4, padding=1, stride=2)
+        self.layer_4_bn = nn.BatchNorm2d(ngf*8)
 
-        self.layer_5 = nn.Conv2d(512, 512, 4, padding=1, stride=2)
-        self.layer_5_bn = nn.BatchNorm2d(512)
-        # Output is of shape (1 X 64 X 8 X 8)
+        self.layer_5 = nn.Conv2d(ngf*8, ngf*16, 4, padding=1, stride=2)
+        self.layer_5_bn = nn.BatchNorm2d(ngf*16)
 
-        self.layer_6 = nn.ConvTranspose2d(512, 512, 4, padding=1, stride=2)
-        self.layer_6_bn = nn.BatchNorm2d(512)
-        # Ouput shape 16 X 16
+        self.layer_6 = nn.ConvTranspose2d(ngf*16, ngf*8, 4, padding=1, stride=2)
+        self.layer_6_bn = nn.BatchNorm2d(ngf*8)
 
-        self.layer_7 = nn.ConvTranspose2d(512, 256, 4, padding=1, stride=2)
-        self.layer_7_bn = nn.BatchNorm2d(256)
-        # Ouput shape 32 X 32
+        self.layer_7 = nn.ConvTranspose2d(ngf*8, ngf*4, 4, padding=1, stride=2)
+        self.layer_7_bn = nn.BatchNorm2d(ngf*4)
 
-        self.layer_8 = nn.ConvTranspose2d(256, 128, 4, padding=1, stride=2)
-        self.layer_8_bn = nn.BatchNorm2d(128)
-        # Output shape 64 X 64
+        self.layer_8 = nn.ConvTranspose2d(ngf*4, ngf*2, 4, padding=1, stride=2)
+        self.layer_8_bn = nn.BatchNorm2d(ngf*2)
 
-        self.layer_9 = nn.ConvTranspose2d(128, 64, 4, padding=1, stride=2)
-        self.layer_9_bn = nn.BatchNorm2d(64)
-        # Ouput shape 128 X 128
+        self.layer_9 = nn.ConvTranspose2d(ngf*2, ngf, 4, padding=1, stride=2)
+        self.layer_9_bn = nn.BatchNorm2d(ngf)
 
-        self.layer_10 = nn.ConvTranspose2d(64, 3, 4, padding=1, stride=2)
-        # Output shape is 256 X 256
+        self.layer_10 = nn.ConvTranspose2d(ngf, 3, 4, padding=1, stride=2)
 
         self._initialize_weights()
 

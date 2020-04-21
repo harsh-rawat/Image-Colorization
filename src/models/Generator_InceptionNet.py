@@ -5,33 +5,33 @@ import torchvision.models as models
 
 
 class Generator_InceptionNet(nn.Module):
-    def __init__(self):
+    def __init__(self, ngf=64):
         super().__init__()
         self.inception2 = models.googlenet(pretrained=True, progress=True)
 
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
-        self.layer_1 = nn.Conv2d(1, 64, 4, stride=2, padding=1)  # Output would be 64 X 128 X 128
-        self.layer_1_norm = nn.BatchNorm2d(64)
-        self.layer_2 = nn.Conv2d(64, 128, 4, stride=2, padding=1)  # Output would be 128 X 64 X 64
-        self.layer_2_norm = nn.BatchNorm2d(128)
-        self.layer_3 = nn.Conv2d(128, 128, 3, stride=1, padding=1)  # Output would be 128 X 64 X 64
-        self.layer_3_norm = nn.BatchNorm2d(128)
-        self.layer_4 = nn.Conv2d(128, 256, 4, stride=2, padding=1)  # Output would be 256 X 32 X 32
-        self.layer_4_norm = nn.BatchNorm2d(256)
-        self.layer_5 = nn.Conv2d(256, 256, 3, stride=1, padding=1)  # Output would be 256 X 32 X 32
-        self.layer_5_norm = nn.BatchNorm2d(256)
+        self.layer_1 = nn.Conv2d(1, ngf, 4, stride=2, padding=1)
+        self.layer_1_norm = nn.BatchNorm2d(ngf)
+        self.layer_2 = nn.Conv2d(ngf, ngf*2, 4, stride=2, padding=1)
+        self.layer_2_norm = nn.BatchNorm2d(ngf*2)
+        self.layer_3 = nn.Conv2d(ngf*2, ngf*4, 3, stride=1, padding=1)
+        self.layer_3_norm = nn.BatchNorm2d(ngf*4)
+        self.layer_4 = nn.Conv2d(ngf*4, ngf*8, 4, stride=2, padding=1)
+        self.layer_4_norm = nn.BatchNorm2d(ngf*8)
+        self.layer_5 = nn.Conv2d(ngf*8, ngf*8, 3, stride=1, padding=1)
+        self.layer_5_norm = nn.BatchNorm2d(ngf*8)
 
-        self.decode_1 = nn.ConvTranspose2d(1256, 128, 4, stride=2, padding=1)  # Out is 128 X 64 X 64
-        self.decode_norm_1 = nn.BatchNorm2d(128)
-        self.decode_2 = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1)  # Out is 64 X 128 X 128
-        self.decode_norm_2 = nn.BatchNorm2d(64)
-        self.decode_3 = nn.ConvTranspose2d(64, 64, 3, stride=1, padding=1)  # Out is 64 X 128 X 128
-        self.decode_norm_3 = nn.BatchNorm2d(64)
-        self.decode_4 = nn.ConvTranspose2d(64, 32, 3, stride=1, padding=1)  # Out is 32 X 128 X 128
-        self.decode_norm_4 = nn.BatchNorm2d(32)
-        self.decode_5 = nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1)  # Out is 3 X 256 X 256
+        self.decode_1 = nn.ConvTranspose2d(1000+ngf*8, ngf*8, 4, stride=2, padding=1)
+        self.decode_norm_1 = nn.BatchNorm2d(ngf*8)
+        self.decode_2 = nn.ConvTranspose2d(ngf*8, ngf*4, 4, stride=2, padding=1)
+        self.decode_norm_2 = nn.BatchNorm2d(ngf*4)
+        self.decode_3 = nn.ConvTranspose2d(ngf*4, ngf*2, 3, stride=1, padding=1)
+        self.decode_norm_3 = nn.BatchNorm2d(ngf*2)
+        self.decode_4 = nn.ConvTranspose2d(ngf*2, ngf, 3, stride=1, padding=1)
+        self.decode_norm_4 = nn.BatchNorm2d(ngf)
+        self.decode_5 = nn.ConvTranspose2d(ngf, 3, 4, stride=2, padding=1)
 
         self._initialize_weights()
 

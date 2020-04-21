@@ -10,6 +10,7 @@ from models.Discriminator import Discriminator
 from models.Generator_RESNET import Generator_RESNET
 from models.Generator_Unet import Generator_Unet
 from models.Generator_InceptionNet import Generator_InceptionNet
+
 from models.Generator_CNN import Generator_CNN
 
 
@@ -33,6 +34,7 @@ class Model:
         self.dis_optim = None
         self.model_type = None
         self.residual_blocks = 9
+        self.layer_size = 64
 
         self.device = self.get_device()
         self.create_folder_structure()
@@ -64,7 +66,7 @@ class Model:
         else:
             return None
 
-    def initialize_model(self, model_type='unet', residual_blocks=9):
+    def initialize_model(self, model_type='unet', residual_blocks=9, layer_size=64):
 
         all_models = ['unet', 'resnet', 'inception', 'cnn']
         if model_type not in all_models:
@@ -72,11 +74,11 @@ class Model:
 
         self.dis = Discriminator(image_size=self.image_size, leaky_relu=self.leaky_relu_threshold)
         if model_type == 'unet':
-            self.gen = Generator_Unet(image_size=self.image_size)
+            self.gen = Generator_Unet(image_size=self.image_size, ngf=layer_size)
         elif model_type == 'resnet':
-            self.gen = Generator_RESNET(residual_blocks=residual_blocks)
+            self.gen = Generator_RESNET(residual_blocks=residual_blocks, ngf=layer_size)
         elif model_type == 'inception':
-            self.gen = Generator_InceptionNet()
+            self.gen = Generator_InceptionNet(ngf=layer_size)
         elif model_type == 'cnn':
             self.gen = Generator_CNN()
 
@@ -88,8 +90,9 @@ class Model:
         self.dis_optim = optim.Adam(self.dis.parameters(), lr=self.lr, betas=self.betas)
 
         self.model_type = model_type
+        self.layer_size = layer_size
         self.residual_blocks = residual_blocks
-        print('Model Initialized !\nGenerator Model Type : {}'.format(model_type))
+        print('Model Initialized !\nGenerator Model Type : {} and Layer Size : {}'.format(model_type, layer_size))
         print('Model Parameters are:\nEpochs : {}\nLearning rate : {}\nLeaky Relu Threshold : {}\nLamda : {}\nBeta : {}'
               .format(self.epochs, self.lr, self.leaky_relu_threshold, self.lamda, self.betas))
 
@@ -289,7 +292,7 @@ class Model:
                      'epochs': self.epochs, 'betas': self.betas, 'image_size': self.image_size,
                      'leaky_relu_thresh': self.leaky_relu_threshold, 'lamda': self.lamda, 'base_path': self.base_path,
                      'count': self.count, 'image_format': self.image_format, 'device': self.device,
-                     'residual_blocks': self.residual_blocks}
+                     'residual_blocks': self.residual_blocks, 'layer_size': self.layer_size}
 
         torch.save(save_dict, filename)
 
@@ -316,6 +319,7 @@ class Model:
         self.image_format = save_dict['image_format']
         self.device = save_dict['device']
         self.residual_blocks = save_dict['residual_blocks']
+        self.layer_size = save_dict['layer_size']
 
         device = self.get_device()
         if device is not self.device:
@@ -326,7 +330,8 @@ class Model:
                 error_msg = 'The model was trained on GPU and cannot be loaded on a CPU machine!'
                 raise Exception(error_msg)
 
-        self.initialize_model(model_type=save_dict['model_type'], residual_blocks= self.residual_blocks)
+        self.initialize_model(model_type=save_dict['model_type'], residual_blocks=self.residual_blocks,
+                              layer_size=self.layer_size)
 
         self.gen.load_state_dict(save_dict['gen_dict'])
         self.dis.load_state_dict(save_dict['dis_dict'])
