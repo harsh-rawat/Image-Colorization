@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.utils import save_image
+import torchvision.models as models
 import torch.optim.lr_scheduler as lr_schedular
 
 from models.Discriminator import Discriminator
@@ -109,6 +110,8 @@ class Model:
 
         mean_loss = nn.BCELoss()
         l1_loss = nn.L1Loss()
+        vgg16 = models.vgg16()
+        vgg16_conv = nn.Sequential(*list(vgg16.children())[:-3])
 
         self.gen.train()
         self.dis.train()
@@ -163,8 +166,8 @@ class Model:
                 fake_img = self.gen(gray_img)
                 gen_adv_loss = mean_loss(self.dis(fake_img), one_label)
                 gen_l1_loss = l1_loss(fake_img.view(batch_size, -1), real_img.view(batch_size, -1))
-
-                total_gen_loss = gen_adv_loss + self.lamda * gen_l1_loss
+                gen_pre_train = l1_loss(vgg16_conv(fake_img), vgg16_conv(real_img))
+                total_gen_loss = gen_adv_loss + self.lamda * gen_l1_loss + self.lamda * gen_pre_train
                 total_gen_loss.backward()
                 self.gen_optim.step()
 
