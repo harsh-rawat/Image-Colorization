@@ -13,6 +13,7 @@ from models.Generator_RESNET import Generator_RESNET
 from models.Generator_Unet import Generator_Unet
 from models.Generator_InceptionNet import Generator_InceptionNet
 from models.Generator_Unet_2 import Generator_Unet_2
+
 from models.Generator_Unet_Large import Generator_Unet_Large
 
 
@@ -200,7 +201,7 @@ class Model:
             self.lr_schedule_gen.step()
             self.lr_schedule_dis.step()
             for param_grp in self.dis_optim.param_groups:
-                print('Learning rate after {} epochs is : {}'.format(i+1, param_grp['lr']))
+                print('Learning rate after {} epochs is : {}'.format(i + 1, param_grp['lr']))
 
         self.save_checkpoint('checkpoint_train_final', self.model_type)
         average_loss.save('checkpoint_avg_loss_final', save_index=0)
@@ -210,11 +211,12 @@ class Model:
         schedular = None
         if option['lr_policy'] == 'linear':
             def lambda_rule(epoch):
-                lr_l = 1.0 - max(0, epoch - option['n_epochs']) / float(option['n_epoch_decay']+1)
+                lr_l = 1.0 - max(0, epoch - option['n_epochs']) / float(option['n_epoch_decay'] + 1)
                 return lr_l
+
             schedular = lr_schedular.LambdaLR(optimizer, lr_lambda=lambda_rule)
         elif option['lr_policy'] == 'plateau':
-            schedular = lr_schedular.ReduceLROnPlateau(optimizer, mode='min', factor = 0.2, threshold= 0.01, patience= 5)
+            schedular = lr_schedular.ReduceLROnPlateau(optimizer, mode='min', factor=0.2, threshold=0.01, patience=5)
         elif option['lr_policy'] == 'step':
             schedular = lr_schedular.StepLR(optimizer, step_size=option['step_size'], gamma=0.1)
         elif option['lr_policy'] == 'cosine':
@@ -223,7 +225,6 @@ class Model:
             raise Exception('LR Policy not implemented!')
 
         return schedular
-
 
     def evaluate_model(self, loader, save_filename, no_of_images=1):
         # Considering that we have batch size of 1 for test set
@@ -316,6 +317,24 @@ class Model:
         print('Model Parameters are:\nEpochs : {}\nLearning rate : {}\nLeaky Relu Threshold : {}\nLamda : {}\nBeta : {}'
               .format(self.epochs, self.lr, self.leaky_relu_threshold, self.lamda, self.betas))
 
+    def run_model_on_dataset(self, loader, save_folder):
+        if self.gen is None or self.dis is None:
+            raise Exception('Model has not been initialized and hence cannot be saved!');
+        index = 1
+        for gray, rgb in loader:
+
+            if self.device is not None:
+                gray = gray.cuda()
+
+            filename = '{}/{}/{}.{}'.format(self.base_path, save_folder, index, self.image_format)
+            index += 1
+
+            self.gen.eval()
+            out = self.gen(gray)
+            out = out[0].detach().cpu()
+            out = (out + 1) / 2
+            save_image(out, filename)
+
     def save_checkpoint(self, filename, model_type='unet'):
         if self.gen is None or self.dis is None:
             raise Exception('The model has not been initialized and hence cannot be saved !')
@@ -326,7 +345,8 @@ class Model:
                      'epochs': self.epochs, 'betas': self.betas, 'image_size': self.image_size,
                      'leaky_relu_thresh': self.leaky_relu_threshold, 'lamda': self.lamda, 'base_path': self.base_path,
                      'count': self.count, 'image_format': self.image_format, 'device': self.device,
-                     'residual_blocks': self.residual_blocks, 'layer_size': self.layer_size, 'lr_policy': self.lr_policy}
+                     'residual_blocks': self.residual_blocks, 'layer_size': self.layer_size,
+                     'lr_policy': self.lr_policy}
 
         torch.save(save_dict, filename)
 
