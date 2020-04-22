@@ -72,10 +72,13 @@ def initialize_model(global_path, image_size, image_format, config):
     return model, average_loss
 
 
-def load_model(load_model_params):
+def load_model():
     epochs, lr, leaky_thresh, lamda, beta1, beta2 = get_model_params(config)
-    model.load_checkpoint(load_model[0])
-    average_loss.load(load_model[1], int(load_model[2]))
+    ckp_name = config.get('LoadModelSection', 'checkpoint_name')
+    avg_ckp_name = config.get('LoadModelSection', 'average_ckp_name')
+    avg_ckp_index = int(config.get('LoadModelSection', 'average_ckp_index'))
+    model.load_checkpoint(ckp_name)
+    average_loss.load(avg_ckp_name, avg_ckp_index)
     model.set_all_params(epochs, lr, leaky_thresh, lamda, (beta1, beta2))
 
 
@@ -151,10 +154,7 @@ if __name__ == '__main__':
                                                                                         'Overrides the parameter '
                                                                                         'present in properties file')
     parser.add_argument('-validation', action='store_true', default=False, help='Specify if validation is required')
-    parser.add_argument('-load_model', action='store', default=None, help='Use this option to load a model. Provide a '
-                                                                          'list as : -load_model training model checkpoint name,'
-                                                                          'average loss checkpoint name,average loss '
-                                                                          'checkpoint index]')
+    parser.add_argument('-load_model', action='store_true', default=False, help='Use this option to load a model')
     parser.add_argument('-mtype', metavar='Model Type', action='store', default='unet',
                         help='The model architecture to be initialized')
     parser.add_argument('-loss_plot', action='store_true',
@@ -192,12 +192,11 @@ if __name__ == '__main__':
     option['step_size'] = int(config.get('ModelTrainingSection', 'step_size'))
 
     model, average_loss = initialize_model(base_path, args.size, args.format, config)
-    if args.load_model is None:
+    if not args.load_model:
         residual_blocks = int(config.get('ModelSection', 'resnet.residual_blocks'))
         model.initialize_model(lr_schedular_options=option, model_type=args.mtype, residual_blocks=residual_blocks, layer_size=layer_size)
     else:
-        load_model_params = args.load_model.split(',')
-        load_model(load_model_params)
+        load_model()
 
     train_model(model, train_loader, valid_loader, average_loss, args.epochs)
 
