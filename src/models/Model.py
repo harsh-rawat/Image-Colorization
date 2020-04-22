@@ -12,8 +12,7 @@ from models.Discriminator import Discriminator
 from models.Generator_RESNET import Generator_RESNET
 from models.Generator_Unet import Generator_Unet
 from models.Generator_InceptionNet import Generator_InceptionNet
-
-from models.Generator_CNN import Generator_CNN
+from models.Generator_Unet_2 import Generator_Unet_2
 
 
 class Model:
@@ -73,7 +72,7 @@ class Model:
 
     def initialize_model(self, lr_schedular_options, model_type='unet', residual_blocks=9, layer_size=64):
 
-        all_models = ['unet', 'resnet', 'inception', 'cnn']
+        all_models = ['unet', 'resnet', 'inception', 'unet2']
         if model_type not in all_models:
             raise Exception('This model type is not available!');
 
@@ -84,8 +83,8 @@ class Model:
             self.gen = Generator_RESNET(residual_blocks=residual_blocks, ngf=layer_size)
         elif model_type == 'inception':
             self.gen = Generator_InceptionNet(ngf=layer_size)
-        elif model_type == 'cnn':
-            self.gen = Generator_CNN()
+        elif model_type == 'unet2':
+            self.gen = Generator_Unet_2(image_size=self.image_size, ngf=layer_size)
 
         if self.device is not None:
             self.gen.cuda()
