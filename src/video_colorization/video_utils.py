@@ -35,6 +35,14 @@ class video_utils:
             CustomDataset('{}/{}_gray'.format(self.path,folder_name), image_size, image_format, image_type='gray'), shuffle=False,
             batch_size=1)
         converted_folder_name = '{}_converted'.format(folder_name)
+
+        try:
+            converted_path = '{}/{}'.format(self.path, converted_folder_name)
+            if not os.path.exists(converted_path):
+                os.makedirs(converted_path)
+        except OSError:
+            print('Error: Creating directory of data')
+
         model.run_model_on_dataset(loader=loader, save_folder=converted_folder_name, save_path=self.path)
         self.combine_images(folder_name, load_filename, save_filename, conversion_type='converted')
         self.delete_all_temp_files(folder_name, load_filename)
