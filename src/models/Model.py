@@ -119,7 +119,6 @@ class Model:
         self.gen.train()
         self.dis.train()
 
-        iterations = 1
         batches = len(trainloader)
         print('Total number of batches in an epoch are : {}'.format(batches))
 
@@ -135,6 +134,7 @@ class Model:
 
             if eval[0] and (i % eval[2] == 0):
                 self.evaluate_L1_loss_dataset(eval[1], train=False)
+                self.evaluate_L1_loss_dataset(trainloader, train=True)
                 self.gen.train()
 
             running_gen_loss = 0
@@ -177,27 +177,26 @@ class Model:
                 running_dis_loss += total_dis_loss.item()
                 running_gen_loss += total_gen_loss.item()
 
-                if display_test_image[0] and iterations % display_test_image[2] == 0:
-                    self.gen.eval()
-                    out_result = self.gen(sample_img_test)
-                    out_result = out_result.detach().cpu()
-                    out_result = (out_result[0] + 1) / 2
-                    save_image(out_result, '{}/Training Images/iteration_{}.{}'.format(self.base_path, iterations,
-                                                                                       self.image_format))
-                    self.gen.train()
-
-                if save_model[0] and iterations % save_model[1] == 0:
-                    self.save_checkpoint('checkpoint_iter_{}'.format(iterations), self.model_type)
-                    average_loss.save('checkpoint_avg_loss', save_index=0)
-
-                iterations += 1
-
             running_dis_loss /= (batches * 1.0)
             running_gen_loss /= (batches * 1.0)
             print('Epoch : {}, Generator Loss : {} and Discriminator Loss : {}'.format(i + 1, running_gen_loss,
                                                                                        running_dis_loss))
+            if display_test_image[0] and i % display_test_image[2] == 0:
+                self.gen.eval()
+                out_result = self.gen(sample_img_test)
+                out_result = out_result.detach().cpu()
+                out_result = (out_result[0] + 1) / 2
+                save_image(out_result, '{}/Training Images/epoch_{}.{}'.format(self.base_path, i,
+                                                                               self.image_format))
+                self.gen.train()
+
             save_tuple = ([running_gen_loss], [running_dis_loss])
             average_loss.add_loss(save_tuple)
+
+            if save_model[0] and i % save_model[1] == 0:
+                self.save_checkpoint('checkpoint_epoch_{}'.format(i), self.model_type)
+                average_loss.save('checkpoint_avg_loss', save_index=0)
+
             self.lr_schedule_gen.step()
             self.lr_schedule_dis.step()
             for param_grp in self.dis_optim.param_groups:

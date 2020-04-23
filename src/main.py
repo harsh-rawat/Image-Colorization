@@ -99,11 +99,7 @@ def train_model(model, train_loader, valid_loader, average_loss, epochs):
     save = (False, 1)
     if save_model:
         save_after_epoch = config.get('ModelTrainingSection', 'save_after_epochs')
-        save_epochs = 0
-        if save_after_epoch == 'batch':
-            save_epochs = batches
-        else:
-            save_epochs = int(save_after_epoch)
+        save_epochs = int(save_after_epoch)
         if save_epochs < 0:
             raise Exception('Incorrect value of Save epochs!')
         save = (True, save_epochs)
@@ -112,11 +108,7 @@ def train_model(model, train_loader, valid_loader, average_loss, epochs):
     display_test_img_flag = config.get('ModelTrainingSection', 'display_test_image') == 'True'
     if display_test_img_flag and valid_loader is not None:
         display_epochs = config.get('ModelTrainingSection', 'display_test_image_epochs')
-        display_img_epochs = 0
-        if display_epochs == 'batch':
-            display_img_epochs = batches
-        else:
-            display_img_epochs = int(display_epochs)
+        display_img_epochs = int(display_epochs)
         if display_img_epochs < 0:
             raise Exception('Incorrect value of Display Image epochs!')
         display_test_img = (True, valid_loader, display_img_epochs)
