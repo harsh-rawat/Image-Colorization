@@ -30,13 +30,15 @@ class video_utils:
     def convert_colored_to_colored_video(self, model, folder_name, load_filename, save_filename, image_size=256,
                                          image_format='jpg'):
         self.convert_to_grayscale_video(folder_name, load_filename, save_filename, delete_temp=False)
+        print('Grayscale Video Generated!')
         loader = torch.utils.data.DataLoader(
-            CustomDataset('{}_gray'.format(folder_name), image_size, image_format, image_type='gray'), shuffle=False,
+            CustomDataset('{}/{}_gray'.format(self.path,folder_name), image_size, image_format, image_type='gray'), shuffle=False,
             batch_size=1)
         converted_folder_name = '{}_converted'.format(folder_name)
         model.run_model_on_dataset(loader=loader, save_folder=converted_folder_name, save_path=self.path)
         self.combine_images(folder_name, load_filename, save_filename, conversion_type='converted')
         self.delete_all_temp_files(folder_name, load_filename)
+        print('Colored video generated!')
 
     def combine_images(self, folder_name, load_filename, save_filename, conversion_type='gray'):
         video_name = '{}/{}_{}'.format(self.path, conversion_type, save_filename)
