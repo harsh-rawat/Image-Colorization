@@ -185,10 +185,6 @@ if __name__ == '__main__':
         generate_loss_chart(labels, train_loss, test_loss)
         exit()
 
-    train_loader, valid_loader = get_dataloader(args.dpath, args.format, args.size, int(args.batch), args.validation,
-                                                config)
-    generate_sample(train_loader)
-
     base_path = args.bpath
     for paths in args.folder:
         base_path = os.path.join(base_path, paths)
@@ -226,6 +222,10 @@ if __name__ == '__main__':
                                                      image_format=args.format)
         print('Conversion completed!')
         exit()
+
+    train_loader, valid_loader = get_dataloader(args.dpath, args.format, args.size, int(args.batch), args.validation,
+                                                config)
+    generate_sample(train_loader)
 
     train_model(model, train_loader, valid_loader, average_loss, args.epochs)
 
