@@ -15,6 +15,8 @@ from models.Model import Model
 from utils.general_utils import *
 from data.CustomDataset import CustomDataset
 
+from video_colorization.video_utils import video_utils
+
 
 def get_dataloader(dataset_path, image_format, image_size, batch_size, validation, config=None):
     print('Setting up Dataloader for the given dataset!')
@@ -159,6 +161,9 @@ if __name__ == '__main__':
     parser.add_argument('-run_model', action='store_true', default=False, help='Use this option to run a model on a '
                                                                                'dataset. Loads the model saved at '
                                                                                'checkpoint.')
+    parser.add_argument('-generate_video', action='store_true', default=False, help='Use this option to generate '
+                                                                                    'grayscale and colored videos '
+                                                                                    'from the given video')
     parser.add_argument('-mtype', metavar='Model Type', action='store', default='unet',
                         help='The model architecture to be initialized')
     parser.add_argument('-loss_plot', action='store_true',
@@ -196,7 +201,7 @@ if __name__ == '__main__':
     option['step_size'] = int(config.get('ModelTrainingSection', 'step_size'))
 
     model, average_loss = initialize_model(base_path, args.size, args.format, config)
-    if args.load_model or args.run_model:
+    if args.load_model or args.run_model or args.generate_video:
         load_model()
     else:
         residual_blocks = int(config.get('ModelSection', 'resnet.residual_blocks'))
@@ -205,9 +210,21 @@ if __name__ == '__main__':
 
     if args.run_model:
         folder = config.get('LoadModelSection', 'save_folder')
-        loader = torch.utils.data.DataLoader(CustomDataset(args.dpath, args.size, args.format), shuffle=False, batch_size=1)
+        loader = torch.utils.data.DataLoader(CustomDataset(args.dpath, args.size, args.format), shuffle=False,
+                                             batch_size=1)
         model.run_model_on_dataset(loader, folder)
         print('Task Completed!')
+        exit()
+    elif args.generate_video:
+        # We will consider dpath as the basepath for the video
+        video_utils = video_utils(args.dpath)
+        folder_name = config.get('LoadModelSection', 'folder_name')
+        save_filename = config.get('LoadModelSection', 'save_filename')
+        load_filename = config.get('LoadModelSection', 'load_filename')
+        video_utils.convert_colored_to_colored_video(model, folder_name=folder_name, load_filename=load_filename,
+                                                     save_filename=save_filename, image_size=args.size,
+                                                     image_format=args.format)
+        print('Conversion completed!')
         exit()
 
     train_model(model, train_loader, valid_loader, average_loss, args.epochs)

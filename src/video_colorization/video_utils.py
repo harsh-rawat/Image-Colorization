@@ -5,8 +5,7 @@ import shutil
 import pickle
 import collections
 import torch
-
-from src.data.CustomDataset import CustomDataset
+from data.CustomDataset import CustomDataset
 
 
 class video_utils:
@@ -16,16 +15,17 @@ class video_utils:
         self.image_type = image_type
 
     def convert_to_grayscale_video(self, foldername, load_filename, save_filename, delete_temp=True):
-        self.delete_all_temp_files(foldername)
+        self.delete_all_temp_files(foldername, load_filename)
 
         self.extract_images(foldername, load_filename)
         self.combine_images(foldername, load_filename, save_filename)
         if delete_temp:
-            self.delete_all_temp_files(foldername)
+            self.delete_all_temp_files(foldername, load_filename)
 
-    def delete_all_temp_files(self, folder_name):
-        self.delete_temp_files(folder_name + '_gray')
-        self.delete_temp_files(folder_name + 'color')
+    def delete_all_temp_files(self, folder_name, load_file_name):
+        self.delete_temp_files(folder_name + '_gray', load_file_name)
+        self.delete_temp_files(folder_name + '_color', load_file_name)
+        self.delete_temp_files(folder_name + '_converted', load_file_name)
 
     def convert_colored_to_colored_video(self, model, folder_name, load_filename, save_filename, image_size=256,
                                          image_format='jpg'):
@@ -36,9 +36,10 @@ class video_utils:
         converted_folder_name = '{}_converted'.format(folder_name)
         model.run_model_on_dataset(loader=loader, save_folder=converted_folder_name, save_path=self.path)
         self.combine_images(folder_name, load_filename, save_filename, conversion_type='converted')
+        self.delete_all_temp_files(folder_name, load_filename)
 
     def combine_images(self, folder_name, load_filename, save_filename, conversion_type='gray'):
-        video_name = '{}/{}'.format(self.path, save_filename)
+        video_name = '{}/{}_{}'.format(self.path, conversion_type, save_filename)
         images_path = '{}/{}_{}'.format(self.path, folder_name, conversion_type)
         images = []
         image_dict = {}
@@ -53,7 +54,7 @@ class video_utils:
         for k, v in imgs.items():
             images.append(v)
 
-        with open('{}/{}_fps'.format(images_path, load_filename), 'rb') as file:
+        with open('{}/{}_fps'.format(self.path, load_filename), 'rb') as file:
             save_dict = pickle.load(file)
         fps = save_dict['fps']
         fourcc = save_dict['fourcc']
@@ -73,11 +74,15 @@ class video_utils:
 
         return True
 
-    def delete_temp_files(self, folder_name):
+    def delete_temp_files(self, folder_name, load_file_name):
         path = '{}/{}'.format(self.path, folder_name)
+        load_file_path = '{}/{}_fps'.format(self.path, load_file_name)
         folder = pathlib.Path(path)
+        load_file_path_obj = pathlib.Path(load_file_path)
         if folder.exists():
             shutil.rmtree(path)
+        if load_file_path_obj.exists():
+            os.remove(load_file_path)
 
     def extract_images(self, folder_name, filename):
         video_path = '{}/{}'.format(self.path, folder_name)
@@ -95,7 +100,7 @@ class video_utils:
         cam = cv2.VideoCapture('{}/{}'.format(self.path, filename));
         frame_per_second = int(cam.get(cv2.CAP_PROP_FPS))
         save_dict = {'fps': frame_per_second, 'fourcc': int(cam.get(cv2.CAP_PROP_FOURCC))}
-        with open('{}/{}_fps'.format(video_path_gray, filename), 'wb') as file:
+        with open('{}/{}_fps'.format(self.path, filename), 'wb') as file:
             pickle.dump(save_dict, file)
 
         currentframe = 0
