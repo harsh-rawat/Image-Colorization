@@ -204,7 +204,7 @@ if __name__ == '__main__':
                                layer_size=layer_size)
 
     if args.run_model:
-        folder = config.get('ModelSection', 'save_folder')
+        folder = config.get('LoadModelSection', 'save_folder')
         loader = torch.utils.data.DataLoader(CustomDataset(args.dpath, args.size, args.format), shuffle=False, batch_size=1)
         model.run_model_on_dataset(loader, folder)
         exit()
