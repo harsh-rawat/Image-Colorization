@@ -47,15 +47,16 @@ class CustomDataset(Dataset):
         img_np = np.transpose(img_np, (2, 0, 1))
         orig_img = torch.FloatTensor(img_np)
 
+        img_l = None
         if self.image_type == 'rgb':
             lab_img = color.rgb2lab(img)
             lab_img = np.transpose(lab_img, (2, 0, 1))
             img_l = lab_img[0, :, :] / 100
-            size = img_l.shape
-            gray_img = torch.FloatTensor(img_l).view(-1, size[0], size[1])
         elif self.image_type == 'gray':
             img_l = orig_img[0, :, :]
-            gray_img = img_l
+
+        size = img_l.shape
+        gray_img = torch.FloatTensor(img_l).view(-1, size[0], size[1])
 
         return gray_img, orig_img
 
