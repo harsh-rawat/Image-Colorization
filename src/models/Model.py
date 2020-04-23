@@ -377,7 +377,7 @@ class Model:
         self.lr_policy = save_dict['lr_policy']
 
         device = self.get_device()
-        if device is not self.device:
+        if device != self.device:
             error_msg = ''
             if self.device is None:
                 error_msg = 'The model was trained on CPU and will therefore be continued on CPU only!'

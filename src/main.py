@@ -13,6 +13,7 @@ from average_loss.AverageLoss import AverageLoss
 from data.Dataloader import Dataloader
 from models.Model import Model
 from utils.general_utils import *
+from data.CustomDataset import CustomDataset
 
 
 def get_dataloader(dataset_path, image_format, image_size, batch_size, validation, config=None):
@@ -155,6 +156,9 @@ if __name__ == '__main__':
                                                                                         'present in properties file')
     parser.add_argument('-validation', action='store_true', default=False, help='Specify if validation is required')
     parser.add_argument('-load_model', action='store_true', default=False, help='Use this option to load a model')
+    parser.add_argument('-run_model', action='store_true', default=False, help='Use this option to run a model on a '
+                                                                               'dataset. Loads the model saved at '
+                                                                               'checkpoint.')
     parser.add_argument('-mtype', metavar='Model Type', action='store', default='unet',
                         help='The model architecture to be initialized')
     parser.add_argument('-loss_plot', action='store_true',
@@ -192,11 +196,18 @@ if __name__ == '__main__':
     option['step_size'] = int(config.get('ModelTrainingSection', 'step_size'))
 
     model, average_loss = initialize_model(base_path, args.size, args.format, config)
-    if not args.load_model:
-        residual_blocks = int(config.get('ModelSection', 'resnet.residual_blocks'))
-        model.initialize_model(lr_schedular_options=option, model_type=args.mtype, residual_blocks=residual_blocks, layer_size=layer_size)
-    else:
+    if args.load_model or args.run_model:
         load_model()
+    else:
+        residual_blocks = int(config.get('ModelSection', 'resnet.residual_blocks'))
+        model.initialize_model(lr_schedular_options=option, model_type=args.mtype, residual_blocks=residual_blocks,
+                               layer_size=layer_size)
+
+    if args.run_model:
+        folder = config.get('ModelSection', 'save_folder')
+        loader = torch.utils.data.DataLoader(CustomDataset(args.dpath, args.size, args.format), shuffle=False, batch_size=1)
+        model.run_model_on_dataset(loader, folder)
+        exit()
 
     train_model(model, train_loader, valid_loader, average_loss, args.epochs)
 

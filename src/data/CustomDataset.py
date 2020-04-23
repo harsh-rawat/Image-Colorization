@@ -29,7 +29,7 @@ class CustomDataset(Dataset):
 
         searchstring = os.path.join(path, '*.' + image_format)
         list_of_images = glob.glob(searchstring)
-
+        list_of_images.sort()
         self.image_paths = list_of_images
 
     def __getitem__(self, index):
