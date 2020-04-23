@@ -72,7 +72,7 @@ class video_utils:
         frame = cv2.imread(os.path.join(images_path, images[0]))
         height, width, layers = frame.shape
 
-        video = cv2.VideoWriter(video_name, fourcc, fps, (width, height))
+        video = cv2.VideoWriter(video_name, -1, fps, (width, height))
 
         for image in images:
             video.write(cv2.imread(os.path.join(images_path, image)))
