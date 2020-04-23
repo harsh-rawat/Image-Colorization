@@ -164,6 +164,7 @@ if __name__ == '__main__':
     parser.add_argument('-generate_video', action='store_true', default=False, help='Use this option to generate '
                                                                                     'grayscale and colored videos '
                                                                                     'from the given video')
+    parser.add_argument('-evaluate', action='store_true', default=False, help='Evaluate the model only')
     parser.add_argument('-mtype', metavar='Model Type', action='store', default='unet',
                         help='The model architecture to be initialized')
     parser.add_argument('-loss_plot', action='store_true',
@@ -197,7 +198,7 @@ if __name__ == '__main__':
     option['step_size'] = int(config.get('ModelTrainingSection', 'step_size'))
 
     model, average_loss = initialize_model(base_path, args.size, args.format, config)
-    if args.load_model or args.run_model or args.generate_video:
+    if args.load_model or args.run_model or args.generate_video or args.evaluate:
         load_model()
     else:
         residual_blocks = int(config.get('ModelSection', 'resnet.residual_blocks'))
@@ -226,6 +227,10 @@ if __name__ == '__main__':
     train_loader, valid_loader = get_dataloader(args.dpath, args.format, args.size, int(args.batch), args.validation,
                                                 config)
     generate_sample(train_loader)
+
+    if args.evaluate:
+        evaluate_model(model, train_loader, valid_loader, config)
+        exit()
 
     train_model(model, train_loader, valid_loader, average_loss, args.epochs)
 
