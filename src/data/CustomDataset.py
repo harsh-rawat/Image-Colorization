@@ -19,9 +19,10 @@ def load_image(file_path):
 
 
 class CustomDataset(Dataset):
-    def __init__(self, path, image_size, image_format='png'):
+    def __init__(self, path, image_size, image_format='png', image_type='rgb'):
         self.root = path
         self.image_size = image_size
+        self.image_type = image_type
 
         path_loc = pathlib.Path(path)
         if not path_loc.exists():
@@ -38,19 +39,24 @@ class CustomDataset(Dataset):
         img = img.resize((self.image_size, self.image_size))
         img_np = np.array(img)
 
+        gray_img = None
+        orig_img = None
+
         # Scale the values to range -1 to 1
         img_np = (img_np - 127.5) / 127.5
-
-        lab_img = color.rgb2lab(img)
-
         img_np = np.transpose(img_np, (2, 0, 1))
-        lab_img = np.transpose(lab_img, (2, 0, 1))
-
-        img_l = lab_img[0, :, :] / 100
-        size = img_l.shape
-
         orig_img = torch.FloatTensor(img_np)
-        gray_img = torch.FloatTensor(img_l).view(-1, size[0], size[1])
+
+        if self.image_type == 'rgb':
+            lab_img = color.rgb2lab(img)
+            lab_img = np.transpose(lab_img, (2, 0, 1))
+            img_l = lab_img[0, :, :] / 100
+            size = img_l.shape
+            gray_img = torch.FloatTensor(img_l).view(-1, size[0], size[1])
+        elif self.image_type == 'gray':
+            img_l = orig_img[0, :, :]
+            gray_img = img_l
+
         return gray_img, orig_img
 
     def __len__(self):

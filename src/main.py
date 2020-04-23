@@ -207,6 +207,7 @@ if __name__ == '__main__':
         folder = config.get('LoadModelSection', 'save_folder')
         loader = torch.utils.data.DataLoader(CustomDataset(args.dpath, args.size, args.format), shuffle=False, batch_size=1)
         model.run_model_on_dataset(loader, folder)
+        print('Task Completed!')
         exit()
 
     train_model(model, train_loader, valid_loader, average_loss, args.epochs)

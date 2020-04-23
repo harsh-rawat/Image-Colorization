@@ -4,6 +4,9 @@ import pathlib
 import shutil
 import pickle
 import collections
+import torch
+
+from src.data.CustomDataset import CustomDataset
 
 
 class video_utils:
@@ -12,7 +15,7 @@ class video_utils:
         self.size = size
         self.image_type = image_type
 
-    def convert_to_grayscale_video(self, foldername, load_filename, save_filename, delete_temp = False):
+    def convert_to_grayscale_video(self, foldername, load_filename, save_filename, delete_temp=True):
         self.delete_all_temp_files(foldername)
 
         self.extract_images(foldername, load_filename)
@@ -21,16 +24,22 @@ class video_utils:
             self.delete_all_temp_files(foldername)
 
     def delete_all_temp_files(self, folder_name):
-        self.delete_temp_files(folder_name)
-        self.delete_temp_files(folder_name)
+        self.delete_temp_files(folder_name + '_gray')
+        self.delete_temp_files(folder_name + 'color')
 
-    def apply_ml_model(self, dataloader, model):
-        #model.apply_model()
-        print('hello')
+    def convert_colored_to_colored_video(self, model, folder_name, load_filename, save_filename, image_size=256,
+                                         image_format='jpg'):
+        self.convert_to_grayscale_video(folder_name, load_filename, save_filename, delete_temp=False)
+        loader = torch.utils.data.DataLoader(
+            CustomDataset('{}_gray'.format(folder_name), image_size, image_format, image_type='gray'), shuffle=False,
+            batch_size=1)
+        converted_folder_name = '{}_converted'.format(folder_name)
+        model.run_model_on_dataset(loader=loader, save_folder=converted_folder_name, save_path=self.path)
+        self.combine_images(folder_name, load_filename, save_filename, conversion_type='converted')
 
-    def combine_images(self, folder_name, load_filename, save_filename):
+    def combine_images(self, folder_name, load_filename, save_filename, conversion_type='gray'):
         video_name = '{}/{}'.format(self.path, save_filename)
-        images_path = '{}/{}_gray'.format(self.path, folder_name)
+        images_path = '{}/{}_{}'.format(self.path, folder_name, conversion_type)
         images = []
         image_dict = {}
         for img in os.listdir(images_path):

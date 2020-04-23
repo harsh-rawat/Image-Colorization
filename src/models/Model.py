@@ -317,16 +317,18 @@ class Model:
         print('Model Parameters are:\nEpochs : {}\nLearning rate : {}\nLeaky Relu Threshold : {}\nLamda : {}\nBeta : {}'
               .format(self.epochs, self.lr, self.leaky_relu_threshold, self.lamda, self.betas))
 
-    def run_model_on_dataset(self, loader, save_folder):
+    def run_model_on_dataset(self, loader, save_folder, save_path=None):
         if self.gen is None or self.dis is None:
             raise Exception('Model has not been initialized and hence cannot be saved!');
         index = 1
-        for gray, rgb in loader:
+        if save_path is None:
+            save_path = self.base_path
+        for gray, dummy in loader:
 
             if self.device is not None:
                 gray = gray.cuda()
 
-            filename = '{}/{}/{}.{}'.format(self.base_path, save_folder, index, self.image_format)
+            filename = '{}/{}/{}.{}'.format(save_path, save_folder, index, self.image_format)
             index += 1
 
             self.gen.eval()
