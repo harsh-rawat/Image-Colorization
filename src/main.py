@@ -14,8 +14,10 @@ from data.Dataloader import Dataloader
 from models.Model import Model
 from utils.general_utils import *
 from data.CustomDataset import CustomDataset
-
 from video_colorization.video_utils import video_utils
+from models.Hybrid_L2_Model import Hybrid_L2_Model
+from models.L1_Model import L1_Model
+from models.L2_Model import L2_Model
 
 
 def get_dataloader(dataset_path, image_format, image_size, batch_size, validation, config=None):
@@ -61,15 +63,28 @@ def get_model_params(config):
     return epochs, lr, leaky_thresh, lamda, beta1, beta2
 
 
-def initialize_model(global_path, image_size, image_format, config):
+def initialize_model(global_path, image_size, image_format, config, loss_type):
     model = None
     torch.cuda.empty_cache()
     gc.collect()
 
     epochs, lr, leaky_thresh, lamda, beta1, beta2 = get_model_params(config)
 
-    model = Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
-                  learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+    if loss_type == 'hybrid_l1':
+        model = Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
+                      learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+    elif loss_type == 'hybrid_l2':
+        model = Hybrid_L2_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
+                                learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+    elif loss_type == 'l1':
+        model = L1_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
+                         learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+    elif loss_type == 'l2':
+        model = L2_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
+                         learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+    else:
+        raise NotImplementedError('This Loss function has not been implemented!')
+
     average_loss = AverageLoss(os.path.join(global_path, 'Loss_Checkpoints'))
 
     return model, average_loss
@@ -157,6 +172,10 @@ if __name__ == '__main__':
                                                                                     'grayscale and colored videos '
                                                                                     'from the given video')
     parser.add_argument('-evaluate', action='store_true', default=False, help='Evaluate the model only')
+    parser.add_argument('-loss_type', metavar='Loss Type', action='store', default='hybrid_l1',
+                        help='The Loss function to be used. '
+                             'Options are - hybrid_l1, hybrid_l2, '
+                             'l1, l2')
     parser.add_argument('-mtype', metavar='Model Type', action='store', default='unet',
                         help='The model architecture to be initialized')
     parser.add_argument('-loss_plot', action='store_true',
@@ -189,7 +208,7 @@ if __name__ == '__main__':
     option['n_epoch_decay'] = int(config.get('ModelTrainingSection', 'n_epoch_decay'))
     option['step_size'] = int(config.get('ModelTrainingSection', 'step_size'))
 
-    model, average_loss = initialize_model(base_path, args.size, args.format, config)
+    model, average_loss = initialize_model(base_path, args.size, args.format, config, args.loss_type)
     if args.load_model or args.run_model or args.generate_video or args.evaluate:
         load_model()
     else:
