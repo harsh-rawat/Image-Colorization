@@ -19,6 +19,7 @@ from models.Hybrid_L2_Model import Hybrid_L2_Model
 from models.L1_Model import L1_Model
 from models.L2_Model import L2_Model
 from models.Hybrid_L1_Model import Hybrid_L1_Model
+from models.Perpetual_Model import Perpetual_Model
 
 
 def get_dataloader(dataset_path, image_format, image_size, batch_size, validation, config=None):
@@ -82,6 +83,9 @@ def initialize_model(global_path, image_size, image_format, config, loss_type):
                          learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     elif loss_type == 'l2':
         model = L2_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
+                         learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+    elif loss_type == 'perpetual':
+        model = Perpetual_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
                          learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     elif loss_type == 'default':
         model = Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
