@@ -18,6 +18,7 @@ from video_colorization.video_utils import video_utils
 from models.Hybrid_L2_Model import Hybrid_L2_Model
 from models.L1_Model import L1_Model
 from models.L2_Model import L2_Model
+from models.Hybrid_L1_Model import Hybrid_L1_Model
 
 
 def get_dataloader(dataset_path, image_format, image_size, batch_size, validation, config=None):
@@ -71,7 +72,7 @@ def initialize_model(global_path, image_size, image_format, config, loss_type):
     epochs, lr, leaky_thresh, lamda, beta1, beta2 = get_model_params(config)
 
     if loss_type == 'hybrid_l1':
-        model = Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
+        model = Hybrid_L1_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
                       learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     elif loss_type == 'hybrid_l2':
         model = Hybrid_L2_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
@@ -81,6 +82,9 @@ def initialize_model(global_path, image_size, image_format, config, loss_type):
                          learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     elif loss_type == 'l2':
         model = L2_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
+                         learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+    elif loss_type == 'default':
+        model = Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
                          learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     else:
         raise NotImplementedError('This Loss function has not been implemented!')

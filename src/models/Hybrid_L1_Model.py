@@ -1,20 +1,24 @@
 import torch.nn as nn
 from torchvision.utils import save_image
 import torch
+import torchvision.models as models
 
 from models.Model import Model
 
 
-class L1_Model(Model):
+class Hybrid_L1_Model(Model):
     def __init__(self, base_path='', epochs=10, learning_rate=0.0002, image_size=256, leaky_relu=0.2,
                  betas=(0.5, 0.999), lamda=100, image_format='png'):
         super().__init__(base_path, epochs, learning_rate, image_size, leaky_relu, betas, lamda, image_format)
 
     def train_model(self, trainloader, average_loss, eval=(False, None, None), save_model=(False, 25),
                     display_test_image=(False, None, 25)):
-        print('We will be using L1 loss!')
+        print('We will be using L2 loss with feature loss!')
         mean_loss = nn.BCELoss()
         l1_loss = nn.L1Loss()
+        mse_loss = nn.MSELoss()
+        vgg16 = models.vgg16()
+        vgg16_conv = nn.Sequential(*list(vgg16.children())[:-3])
 
         self.gen.train()
         self.dis.train()
@@ -68,8 +72,9 @@ class L1_Model(Model):
 
                 fake_img = self.gen(gray_img)
                 gen_adv_loss = mean_loss(self.dis(fake_img), one_label)
-                gen_l2_loss = l1_loss(fake_img.view(batch_size, -1), real_img.view(batch_size, -1))
-                total_gen_loss = gen_adv_loss + self.lamda * gen_l2_loss
+                gen_l1_loss = l1_loss(fake_img.view(batch_size, -1), real_img.view(batch_size, -1))
+                gen_pre_train = mse_loss(vgg16_conv(fake_img), vgg16_conv(real_img))
+                total_gen_loss = gen_adv_loss + self.lamda * gen_l1_loss + self.lamda * gen_pre_train
                 total_gen_loss.backward()
                 self.gen_optim.step()
 

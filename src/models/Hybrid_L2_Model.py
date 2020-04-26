@@ -15,7 +15,8 @@ class Hybrid_L2_Model(Model):
                     display_test_image=(False, None, 25)):
         print('We will be using L2 loss with feature loss!')
         mean_loss = nn.BCELoss()
-        l1_loss = nn.MSELoss()
+        l2_loss = nn.MSELoss()
+        mse_loss = nn.MSELoss()
         vgg16 = models.vgg16()
         vgg16_conv = nn.Sequential(*list(vgg16.children())[:-3])
 
@@ -71,8 +72,8 @@ class Hybrid_L2_Model(Model):
 
                 fake_img = self.gen(gray_img)
                 gen_adv_loss = mean_loss(self.dis(fake_img), one_label)
-                gen_l1_loss = l1_loss(fake_img.view(batch_size, -1), real_img.view(batch_size, -1))
-                gen_pre_train = l1_loss(vgg16_conv(fake_img), vgg16_conv(real_img))
+                gen_l1_loss = l2_loss(fake_img.view(batch_size, -1), real_img.view(batch_size, -1))
+                gen_pre_train = mse_loss(vgg16_conv(fake_img), vgg16_conv(real_img))
                 total_gen_loss = gen_adv_loss + self.lamda * gen_l1_loss + self.lamda * gen_pre_train
                 total_gen_loss.backward()
                 self.gen_optim.step()
