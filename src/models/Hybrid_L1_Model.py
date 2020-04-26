@@ -13,7 +13,7 @@ class Hybrid_L1_Model(Model):
 
     def train_model(self, trainloader, average_loss, eval=(False, None, None), save_model=(False, 25),
                     display_test_image=(False, None, 25)):
-        print('We will be using L1 loss with feature loss!')
+        print('We will be using L1 loss with perpetual loss (L2)!')
         mean_loss = nn.BCELoss()
         l1_loss = nn.L1Loss()
         mse_loss = nn.MSELoss()

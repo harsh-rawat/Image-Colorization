@@ -13,7 +13,7 @@ class Perpetual_Model(Model):
 
     def train_model(self, trainloader, average_loss, eval=(False, None, None), save_model=(False, 25),
                     display_test_image=(False, None, 25)):
-        print('We will be using L2 loss with feature loss!')
+        print('We will be using only perpetual loss!')
         mean_loss = nn.BCELoss()
         mse_loss = nn.MSELoss()
         vgg16 = models.vgg16()
