@@ -53,6 +53,10 @@ class CustomDataset(Dataset):
             lab_img = np.transpose(lab_img, (2, 0, 1))
             img_l = lab_img[0, :, :] / 100
         elif self.image_type == 'gray':
+            img_np = np.array(img)
+            img_np = img_np / 255.0
+            img_np = np.transpose(img_np, (2, 0, 1))
+            orig_img = torch.FloatTensor(img_np)
             img_l = orig_img[0, :, :]
 
         size = img_l.shape
