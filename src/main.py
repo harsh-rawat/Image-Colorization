@@ -159,6 +159,12 @@ def evaluate_model(model, train_loader, valid_loader, config):
 def apply_model(base_path, folder, model, image_size=256, image_format='jpg'):
     dataset = CustomDataset('{}/{}'.format(base_path, folder), image_size, image_format, image_type='gray')
     loader = torch.utils.data.DataLoader(dataset, shuffle=False, batch_size=1)
+    converted_path = '{}/{}_converted'.format(base_path, folder)
+    try:
+        if not os.path.exists(converted_path):
+            os.makedirs(converted_path)
+    except OSError:
+        print('Error: Creating directory of data')
     model.run_model_on_dataset(loader, '{}_converted'.format(folder), save_path=base_path)
 
 
