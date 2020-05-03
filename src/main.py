@@ -219,7 +219,7 @@ if __name__ == '__main__':
 
     if args.run_model:
         folder = config.get('LoadModelSection', 'save_folder')
-        apply_model(args.bpath, folder, model, args.size, args.format)
+        apply_model(args.dpath, folder, model, args.size, args.format)
         print('Task Completed!')
         exit()
     elif args.generate_video:
