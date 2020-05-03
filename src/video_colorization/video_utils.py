@@ -51,18 +51,8 @@ class video_utils:
     def combine_images(self, folder_name, load_filename, save_filename, conversion_type='gray'):
         video_name = '{}/{}_{}'.format(self.path, conversion_type, save_filename)
         images_path = '{}/{}_{}'.format(self.path, folder_name, conversion_type)
-        images = []
-        image_dict = {}
-        for img in os.listdir(images_path):
-            if img.endswith(self.image_type):
-                key = int(img.split('.')[0])
-                image_dict[key] = img
-
-        if len(image_dict) == 0:
-            return False;
-        imgs = collections.OrderedDict(sorted(image_dict.items()))
-        for k, v in imgs.items():
-            images.append(v)
+        images = os.listdir(images_path)
+        images.sort(key=self.natural_keys)
 
         with open('{}/{}_fps'.format(self.path, load_filename), 'rb') as file:
             save_dict = pickle.load(file)
@@ -134,3 +124,13 @@ class video_utils:
         cv2.destroyAllWindows()
 
         return True
+
+    def atof(self, text):
+        try:
+            retval = float(text)
+        except ValueError:
+            retval = text
+        return retval
+
+    def natural_keys(self, text):
+        return [self.atof(c) for c in re.split(r'[+-]?([0-9]+(?:[.][0-9]*)?|[.][0-9]+)', text)]
