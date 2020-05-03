@@ -1,7 +1,6 @@
 """
 @author: harsh
 """
-
 import torch
 from torch.utils.data import Dataset
 import numpy as np
@@ -10,6 +9,7 @@ import os
 import pathlib
 from PIL import Image
 from skimage import color
+import re
 
 
 def load_image(file_path):
@@ -30,7 +30,7 @@ class CustomDataset(Dataset):
 
         searchstring = os.path.join(path, '*.' + image_format)
         list_of_images = glob.glob(searchstring)
-        list_of_images.sort()
+        list_of_images.sort(key=self.natural_keys)
         self.image_paths = list_of_images
 
     def __getitem__(self, index):
@@ -59,6 +59,16 @@ class CustomDataset(Dataset):
         gray_img = torch.FloatTensor(img_l).view(-1, size[0], size[1])
 
         return gray_img, orig_img
+
+    def atof(self, text):
+        try:
+            retval = float(text)
+        except ValueError:
+            retval = text
+        return retval
+
+    def natural_keys(self, text):
+        return [self.atof(c) for c in re.split(r'[+-]?([0-9]+(?:[.][0-9]*)?|[.][0-9]+)', text)]
 
     def __len__(self):
         return len(self.image_paths)

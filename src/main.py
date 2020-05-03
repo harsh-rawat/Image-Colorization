@@ -8,11 +8,9 @@ import torch
 import gc
 import os
 import configparser
-
 from average_loss.AverageLoss import AverageLoss
 from data.Dataloader import Dataloader
 from models.Model import Model
-from utils.general_utils import *
 from data.CustomDataset import CustomDataset
 from video_colorization.video_utils import video_utils
 from models.Hybrid_L2_Model import Hybrid_L2_Model
@@ -20,6 +18,9 @@ from models.L1_Model import L1_Model
 from models.L2_Model import L2_Model
 from models.Hybrid_L1_Model import Hybrid_L1_Model
 from models.Perpetual_Model import Perpetual_Model
+
+
+from general_utils import generate_sample
 
 
 def get_dataloader(dataset_path, image_format, image_size, batch_size, validation, config=None):
@@ -74,7 +75,7 @@ def initialize_model(global_path, image_size, image_format, config, loss_type):
 
     if loss_type == 'hybrid_l1':
         model = Hybrid_L1_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
-                      learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+                                learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     elif loss_type == 'hybrid_l2':
         model = Hybrid_L2_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
                                 learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
@@ -86,10 +87,10 @@ def initialize_model(global_path, image_size, image_format, config, loss_type):
                          learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     elif loss_type == 'perpetual':
         model = Perpetual_Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
-                         learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+                                learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     elif loss_type == 'default':
         model = Model(base_path=global_path, image_size=image_size, image_format=image_format, epochs=epochs,
-                         learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
+                      learning_rate=lr, leaky_relu=leaky_thresh, lamda=lamda, betas=(beta1, beta2))
     else:
         raise NotImplementedError('This Loss function has not been implemented!')
 
@@ -155,6 +156,12 @@ def evaluate_model(model, train_loader, valid_loader, config):
     model.evaluate_L1_loss_dataset(valid_loader, train=False)
 
 
+def apply_model(base_path, folder, model, image_size=256, image_format='jpg'):
+    dataset = CustomDataset('{}/{}'.format(base_path, folder), image_size, image_format, image_type='gray')
+    loader = torch.utils.data.DataLoader(dataset, shuffle=False, batch_size=1)
+    model.run_model_on_dataset(loader, '{}_converted'.format(folder), save_path=base_path)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Defining the GAN parameters and training the model!')
     parser.add_argument('-dpath', metavar='dataset-path', action='store', required=True,
@@ -186,24 +193,10 @@ if __name__ == '__main__':
                              'l1, l2')
     parser.add_argument('-mtype', metavar='Model Type', action='store', default='unet',
                         help='The model architecture to be initialized')
-    parser.add_argument('-loss_plot', action='store_true',
-                        help='Generate the loss bar plot based on values present in properties file.')
 
     args = parser.parse_args()
     config = configparser.ConfigParser()
     config.read('./project.properties')
-
-    if args.loss_plot:
-        train_loss = config.get('LossSection', 'train')
-        train_loss = train_loss.split(',')
-        train_loss = [float(val) for val in train_loss]
-        test_loss = config.get('LossSection', 'test')
-        test_loss = test_loss.split(',')
-        test_loss = [float(val) for val in test_loss]
-        labels = config.get('LossSection', 'labels')
-        labels = labels.split(',')
-        generate_loss_chart(labels, train_loss, test_loss)
-        exit()
 
     base_path = args.bpath
     for paths in args.folder:
@@ -226,9 +219,7 @@ if __name__ == '__main__':
 
     if args.run_model:
         folder = config.get('LoadModelSection', 'save_folder')
-        loader = torch.utils.data.DataLoader(CustomDataset(args.dpath, args.size, args.format), shuffle=False,
-                                             batch_size=1)
-        model.run_model_on_dataset(loader, folder)
+        apply_model(args.dpath, folder, model, args.size, args.format)
         print('Task Completed!')
         exit()
     elif args.generate_video:
