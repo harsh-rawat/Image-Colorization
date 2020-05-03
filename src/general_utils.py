@@ -119,4 +119,4 @@ if __name__ == '__main__':
     if args.find_closeness_score:
         if len(args.folder) != 2:
             raise Exception('Please provide folder for real images and generated images')
-        print(calculate_closeness_score(args.dpath, args.folder[0], args.folder[1], args.size, args.format))
+        calculate_closeness_score(args.dpath, args.folder[0], args.folder[1], args.size, args.format)
